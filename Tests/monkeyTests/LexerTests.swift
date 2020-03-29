@@ -46,9 +46,9 @@ final class LexerTests: XCTestCase {
             (.ASSIGN, "="),
             (.IDENT, "add"),
             (.LPAREN, "("),
-            (.IDENT, "x"),
+            (.IDENT, "five"),
             (.COMMA, ","),
-            (.IDENT, "y"),
+            (.IDENT, "ten"),
             (.RPAREN, ")"),
             (.SEMICOLON, ";"),
             (.EOF, "")

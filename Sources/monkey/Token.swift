@@ -45,3 +45,14 @@ extension TokenType {
     public static let FUNCTION = TokenType(rawValue: "FUNCTION")
     public static let LET = TokenType(rawValue: "LET")
 }
+
+extension TokenType {
+    public static func lookupIdent(_ ident: String) -> TokenType {
+        keywords[ident] ?? .IDENT
+    }
+
+    private static let keywords: [String: TokenType] = [
+        "fn": .FUNCTION,
+        "let": .LET
+    ]
+}
