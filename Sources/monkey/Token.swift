@@ -22,6 +22,12 @@ public struct Token {
         self.type = type
         self.literal = String(literal)
     }
+
+    public init?(type: TokenType, literal: Character?, _ trailing: Character?...) {
+        guard case let str = ([literal] + trailing).compactMap({ $0 }), !str.isEmpty else { return nil }
+        self.type = type
+        self.literal = String(str)
+    }
 }
 
 extension TokenType {
@@ -37,6 +43,9 @@ extension TokenType {
     public static let BANG = TokenType(rawValue: "!")
     public static let ASTERISK = TokenType(rawValue: "*")
     public static let SLASH = TokenType(rawValue: "/")
+
+    public static let EQ = TokenType(rawValue: "==")
+    public static let NOT_EQ = TokenType(rawValue: "!=")
 
     public static let LT = TokenType(rawValue: "<")
     public static let GT = TokenType(rawValue: ">")

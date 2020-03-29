@@ -9,10 +9,6 @@ public struct Lexer {
         readChar()
     }
 
-    public mutating func readChar() {
-        ch = scanner.next()
-    }
-
     public mutating func nextToken() -> Token? {
 
         skipWhitespace()
@@ -20,7 +16,11 @@ public struct Lexer {
         let token: Token?
         switch ch {
         case "=":
-            token = Token(type: .ASSIGN, literal: ch)
+            if peekChar() == "=" {
+                token = Token(type: .EQ, literal: ch, readChar())
+            } else {
+                token = Token(type: .ASSIGN, literal: ch)
+            }
 
         case "+":
             token = Token(type: .PLUS, literal: ch)
@@ -29,7 +29,11 @@ public struct Lexer {
             token = Token(type: .MINUS, literal: ch)
 
         case "!":
-            token = Token(type: .BANG, literal: ch)
+            if peekChar() == "=" {
+                token = Token(type: .NOT_EQ, literal: ch, readChar())
+            } else {
+                token = Token(type: .BANG, literal: ch)
+            }
 
         case "/":
             token = Token(type: .SLASH, literal: ch)
@@ -77,6 +81,16 @@ public struct Lexer {
 
         readChar()
         return token
+    }
+
+    private func peekChar() -> Character? {
+        scanner.peek()
+    }
+
+    @discardableResult
+    private mutating func readChar() -> Character? {
+        ch = scanner.next()
+        return ch
     }
 
     private mutating func skipWhitespace() {
