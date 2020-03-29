@@ -51,6 +51,11 @@ extension TokenType {
 
     public static let FUNCTION = TokenType(rawValue: "FUNCTION")
     public static let LET = TokenType(rawValue: "LET")
+    public static let TRUE = TokenType(rawValue: "TRUE")
+    public static let FALSE = TokenType(rawValue: "FALSE")
+    public static let IF = TokenType(rawValue: "IF")
+    public static let ELSE = TokenType(rawValue: "ELSE")
+    public static let RETURN = TokenType(rawValue: "RETURN")
 }
 
 extension TokenType {
@@ -60,6 +65,11 @@ extension TokenType {
 
     private static let keywords: [String: TokenType] = [
         "fn": .FUNCTION,
-        "let": .LET
+        "let": .LET,
+        "true": .TRUE,
+        "false": .FALSE,
+        "if": .IF,
+        "else": .ELSE,
+        "return": .RETURN
     ]
 }
