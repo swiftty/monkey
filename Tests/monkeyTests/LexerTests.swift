@@ -12,6 +12,8 @@ final class LexerTests: XCTestCase {
         };
 
         let result = add(five, ten);
+        !-/*5;
+        5 < 10 > 5;
         """
 
         let tests: [(expectedType: TokenType, expectedLiteral: String)] = [
@@ -50,6 +52,18 @@ final class LexerTests: XCTestCase {
             (.COMMA, ","),
             (.IDENT, "ten"),
             (.RPAREN, ")"),
+            (.SEMICOLON, ";"),
+            (.BANG, "!"),
+            (.MINUS, "-"),
+            (.SLASH, "/"),
+            (.ASTERISK, "*"),
+            (.INT, "5"),
+            (.SEMICOLON, ";"),
+            (.INT, "5"),
+            (.LT, "<"),
+            (.INT, "10"),
+            (.GT, ">"),
+            (.INT, "5"),
             (.SEMICOLON, ";"),
             (.EOF, "")
         ]
