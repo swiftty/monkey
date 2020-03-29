@@ -33,6 +33,13 @@ extension TokenType {
 
     public static let ASSIGN = TokenType(rawValue: "=")
     public static let PLUS = TokenType(rawValue: "+")
+    public static let MINUS = TokenType(rawValue: "-")
+    public static let BANG = TokenType(rawValue: "!")
+    public static let ASTERISK = TokenType(rawValue: "*")
+    public static let SLASH = TokenType(rawValue: "/")
+
+    public static let LT = TokenType(rawValue: "<")
+    public static let GT = TokenType(rawValue: ">")
 
     public static let COMMA = TokenType(rawValue: ",")
     public static let SEMICOLON = TokenType(rawValue: ";")

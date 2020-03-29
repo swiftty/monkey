@@ -25,6 +25,24 @@ public struct Lexer {
         case "+":
             token = Token(type: .PLUS, literal: ch)
 
+        case "-":
+            token = Token(type: .MINUS, literal: ch)
+
+        case "!":
+            token = Token(type: .BANG, literal: ch)
+
+        case "/":
+            token = Token(type: .SLASH, literal: ch)
+
+        case "*":
+            token = Token(type: .ASTERISK, literal: ch)
+
+        case "<":
+            token = Token(type: .LT, literal: ch)
+
+        case ">":
+            token = Token(type: .GT, literal: ch)
+
         case ",":
             token = Token(type: .COMMA, literal: ch)
 
