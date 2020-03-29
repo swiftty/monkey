@@ -3,24 +3,62 @@ import XCTest
 
 final class LexerTests: XCTestCase {
     func testNextToken() {
-        let input = "=+(){},;"
+        let input = """
+        let five = 5;
+        let ten = 10;
+
+        let add = fn(x, y) {
+            x + y;
+        };
+
+        let result = add(five, ten);
+        """
 
         let tests: [(expectedType: TokenType, expectedLiteral: String)] = [
-            (TokenType.ASSIGN, "="),
-            (TokenType.PLUS, "+"),
-            (TokenType.LPAREN, "("),
-            (TokenType.RPAREN, ")"),
-            (TokenType.LBRACE, "{"),
-            (TokenType.RBRACE, "}"),
-            (TokenType.COMMA, ","),
-            (TokenType.SEMICOLON, ";"),
-            (TokenType.EOF, "")
+            (.LET, "let"),
+            (.IDENT, "five"),
+            (.ASSIGN, "="),
+            (.INT, "5"),
+            (.SEMICOLON, ";"),
+            (.LET, "let"),
+            (.IDENT, "ten"),
+            (.ASSIGN, "="),
+            (.INT, "10"),
+            (.SEMICOLON, ";"),
+            (.LET, "let"),
+            (.IDENT, "add"),
+            (.ASSIGN, "="),
+            (.FUNCTION, "fn"),
+            (.LPAREN, "("),
+            (.IDENT, "x"),
+            (.COMMA, ","),
+            (.IDENT, "y"),
+            (.RPAREN, ")"),
+            (.LBRACE, "{"),
+            (.IDENT, "x"),
+            (.PLUS, "+"),
+            (.IDENT, "y"),
+            (.SEMICOLON, ";"),
+            (.RBRACE, "}"),
+            (.SEMICOLON, ";"),
+            (.LET, "let"),
+            (.IDENT, "result"),
+            (.ASSIGN, "="),
+            (.IDENT, "add"),
+            (.LPAREN, "("),
+            (.IDENT, "x"),
+            (.COMMA, ","),
+            (.IDENT, "y"),
+            (.RPAREN, ")"),
+            (.SEMICOLON, ";"),
+            (.EOF, "")
         ]
 
         var lexer = Lexer(input)
 
         for (i, t) in tests.enumerated() {
             guard let tok = lexer.nextToken() else {
+                XCTFail("tests[\(i)] - unknown token wrong.expected=\(t.expectedType)")
                 continue
             }
             if tok.type != t.expectedType {
