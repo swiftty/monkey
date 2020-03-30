@@ -2,6 +2,8 @@
 public struct Parser {
     public var lexer: Lexer
 
+    public var errors: [String] = []
+
     public var currToken: Token
     public var peekToken: Token
 
@@ -27,6 +29,11 @@ public struct Parser {
         }
 
         return program
+    }
+
+    private mutating func peekError(_ type: TokenType) {
+        let message = "expected next token to be \(type). got \(peekToken.type) insted"
+        errors.append(message)
     }
 
     private mutating func parseStatement() -> Statement? {
@@ -66,6 +73,7 @@ public struct Parser {
             nextToken()
             return true
         } else {
+            peekError(type)
             return false
         }
     }

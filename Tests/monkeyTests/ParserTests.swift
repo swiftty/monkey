@@ -2,7 +2,7 @@ import XCTest
 @testable import monkey
 
 final class ParserTests: XCTestCase {
-    func testLetStatements() {
+    func testLetStatements() throws {
         let input = """
         let x = 5;
         let y = 10;
@@ -15,6 +15,7 @@ final class ParserTests: XCTestCase {
 
         var parser = Parser(lexer: .init(input))
         let program = parser.parseProgram()
+        try checkParserErrors(parser: parser, file: #file, line: #line)
         if case let count = program.statements.count, count != expected.count {
             XCTFail("program.statements does not contain 3 statements. got=\(count)")
             return
@@ -24,6 +25,20 @@ final class ParserTests: XCTestCase {
             let stmt = program.statements[i]
             checkLetStatement(stmt: stmt, name: name, file: #file, line: #line)
         }
+    }
+
+    private func checkParserErrors(parser: Parser, file: StaticString, line: UInt) throws {
+        if parser.errors.isEmpty {
+            return
+        }
+
+        XCTFail("parser has \(parser.errors.count) errors.", file: file, line: line)
+        for msg in parser.errors {
+            XCTFail("parser error: \(msg)", file: file, line: line)
+        }
+
+        struct ParseError: Error {}
+        throw ParseError()
     }
 
     private func checkLetStatement(stmt: Statement, name: String, file: StaticString, line: UInt) {
