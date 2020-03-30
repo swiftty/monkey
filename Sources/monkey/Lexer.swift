@@ -9,7 +9,7 @@ public struct Lexer {
         readChar()
     }
 
-    public mutating func nextToken() -> Token? {
+    public mutating func nextToken() -> Token {
 
         skipWhitespace()
 
@@ -80,7 +80,7 @@ public struct Lexer {
         }
 
         readChar()
-        return token
+        return token ?? Token(type: .EOF, literal: "")
     }
 
     private func peekChar() -> Character? {

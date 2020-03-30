@@ -13,7 +13,7 @@ repeat {
     }
 
     var lexer = Lexer(line)
-    while let token = lexer.nextToken(), token.type != .EOF {
+    while case let token = lexer.nextToken(), token.type != .EOF {
         print(token)
     }
 } while true

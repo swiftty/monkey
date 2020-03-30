@@ -105,10 +105,8 @@ final class LexerTests: XCTestCase {
         var lexer = Lexer(input)
 
         for (i, t) in tests.enumerated() {
-            guard let tok = lexer.nextToken() else {
-                XCTFail("tests[\(i)] - unknown token wrong.expected=\(t.expectedType)")
-                continue
-            }
+            let tok = lexer.nextToken()
+
             if tok.type != t.expectedType {
                 XCTFail("tests[\(i)] - tokentype wrong.expected=\(t.expectedType), got=\(tok.type)")
             }
