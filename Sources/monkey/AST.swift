@@ -31,3 +31,10 @@ public struct Identifier: Expression {
 
     public func tokenLiteral() -> String { token.literal }
 }
+
+public struct ReturnStatement: Statement {
+    public var token: Token
+    public var returnValue: Expression
+
+    public func tokenLiteral() -> String { token.literal }
+}

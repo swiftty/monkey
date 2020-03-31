@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TokenType: RawRepresentable {
+public struct TokenType: RawRepresentable, Equatable {
     public var rawValue: String
 
     public init(rawValue: String) {

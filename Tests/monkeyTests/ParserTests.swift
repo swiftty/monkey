@@ -15,7 +15,7 @@ final class ParserTests: XCTestCase {
 
         var parser = Parser(lexer: .init(input))
         let program = parser.parseProgram()
-        try checkParserErrors(parser: parser, file: #file, line: #line)
+        try checkParserErrors(parser: parser)
         if case let count = program.statements.count, count != expected.count {
             XCTFail("program.statements does not contain 3 statements. got=\(count)")
             return
@@ -23,11 +23,36 @@ final class ParserTests: XCTestCase {
 
         for (i, name) in expected.enumerated() {
             let stmt = program.statements[i]
-            checkLetStatement(stmt: stmt, name: name, file: #file, line: #line)
+            checkLetStatement(stmt: stmt, name: name)
         }
     }
 
-    private func checkParserErrors(parser: Parser, file: StaticString, line: UInt) throws {
+    func testReturnStatements() throws {
+        let input = """
+        return 5;
+        return 10;
+        return 993322;
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+        if case let count = program.statements.count, count != 3 {
+            XCTFail("program.statements does not contain 3 statements. got=\(count)")
+            return
+        }
+
+        for stmt in program.statements {
+            guard let returnStmt = stmt as? ReturnStatement else {
+                XCTFail("stmt not ReturnStatement. got=\(type(of: stmt))")
+                continue
+            }
+            XCTAssertEqual(returnStmt.tokenLiteral(), "return")
+        }
+    }
+
+    private func checkParserErrors(parser: Parser,
+                                   file: StaticString = #file, line: UInt = #line) throws {
         if parser.errors.isEmpty {
             return
         }
@@ -41,7 +66,8 @@ final class ParserTests: XCTestCase {
         throw ParseError()
     }
 
-    private func checkLetStatement(stmt: Statement, name: String, file: StaticString, line: UInt) {
+    private func checkLetStatement(stmt: Statement, name: String,
+                                   file: StaticString = #file, line: UInt = #line) {
         if case let literal = stmt.tokenLiteral(), literal != "let" {
             XCTFail("stmt.tokenLiteral() not 'let'. got=\(literal)",
                 file: file, line: line)
@@ -69,5 +95,6 @@ final class ParserTests: XCTestCase {
 
     static var allTests = [
         ("testLetStatements", testLetStatements),
+        ("testReturnStatements", testReturnStatements)
     ]
 }

@@ -37,27 +37,11 @@ public struct Parser {
     }
 
     private mutating func parseStatement() -> Statement? {
-        return currToken.type == .LET
-            ? parseLetStatement()
-            : nil
-    }
-
-    private mutating func parseLetStatement() -> Statement? {
-        let token = currToken
-        if !expectPeek(.IDENT) {
-            return nil
+        switch currToken.type {
+        case .LET: return parseLetStatement()
+        case .RETURN: return parseReturnStatement()
+        default: return nil
         }
-
-        let name = Identifier(token: currToken, value: currToken.literal)
-        if !expectPeek(.ASSIGN) {
-            return nil
-        }
-
-        while !currToken(is: .SEMICOLON) {
-            nextToken()
-        }
-
-        return LetStatement(token: token, name: name, value: nil)
     }
 
     private func currToken(is type: TokenType) -> Bool {
@@ -76,5 +60,40 @@ public struct Parser {
             peekError(type)
             return false
         }
+    }
+}
+
+extension Parser {
+    private mutating func parseLetStatement() -> Statement? {
+        let token = currToken
+        if !expectPeek(.IDENT) {
+            return nil
+        }
+
+        let name = Identifier(token: currToken, value: currToken.literal)
+        if !expectPeek(.ASSIGN) {
+            return nil
+        }
+
+        while !currToken(is: .SEMICOLON) {
+            nextToken()
+        }
+
+        return LetStatement(token: token, name: name, value: nil)
+    }
+
+    private mutating func parseReturnStatement() -> Statement? {
+        struct Dummy: Expression {
+            func tokenLiteral() -> String { "TODO" }
+        }
+        let stmt = ReturnStatement(token: currToken, returnValue: Dummy())
+
+        nextToken()
+
+        while !currToken(is: .SEMICOLON) {
+            nextToken()
+        }
+
+        return stmt
     }
 }
