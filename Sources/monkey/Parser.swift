@@ -83,10 +83,7 @@ extension Parser {
     }
 
     private mutating func parseReturnStatement() -> Statement? {
-        struct Dummy: Expression {
-            func tokenLiteral() -> String { "TODO" }
-        }
-        let stmt = ReturnStatement(token: currToken, returnValue: Dummy())
+        let stmt = ReturnStatement(token: currToken, returnValue: nil)
 
         nextToken()
 
