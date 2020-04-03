@@ -1,3 +1,17 @@
+private enum Precedence: Int, Comparable {
+    case LOWEST
+    case EQUALS
+    case LESSGREATER
+    case SUM
+    case PRODUCT
+    case PREFIX
+    case CALL
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
 
 public struct Parser {
     public var lexer: Lexer
@@ -14,6 +28,8 @@ public struct Parser {
         lexer = l
         currToken = lexer.nextToken()
         peekToken = lexer.nextToken()
+
+        registerPrefix(parseIdentifier, to: .IDENT)
     }
 
     public mutating func nextToken() {
@@ -41,6 +57,10 @@ public struct Parser {
     private mutating func registerInfix(_ fn: @escaping (Expression) -> Expression, to type: TokenType) {
         infixParseFns[type] = fn
     }
+
+    private func parseIdentifier() -> Expression {
+        Identifier(token: currToken, value: currToken.literal)
+    }
 }
 
 extension Parser {
@@ -53,7 +73,7 @@ extension Parser {
         switch currToken.type {
         case .LET: return parseLetStatement()
         case .RETURN: return parseReturnStatement()
-        default: return nil
+        default: return parseExpressionStatement()
         }
     }
 
@@ -77,6 +97,22 @@ extension Parser {
 }
 
 extension Parser {
+    private mutating func parseExpression(_ precedence: Precedence) -> Expression? {
+        prefixParseFns[currToken.type]?()
+    }
+}
+
+extension Parser {
+    private mutating func parseExpressionStatement() -> Statement? {
+        let stmt = ExpressionStatement(token: currToken, expression: parseExpression(.LOWEST))
+
+        if peekToken(is: .SEMICOLON) {
+            nextToken()
+        }
+
+        return stmt
+    }
+
     private mutating func parseLetStatement() -> Statement? {
         let token = currToken
         if !expectPeek(.IDENT) {

@@ -2,6 +2,31 @@ import XCTest
 @testable import monkey
 
 final class ParserTests: XCTestCase {
+    func testIdentifierExpression() throws {
+        let input = """
+        foobar;
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+        guard let ident = stmt.expression as? Identifier else {
+            XCTFail("stmt not Identifier. got=\(type(of: stmt))")
+            return
+        }
+        XCTAssertEqual(ident.value, "foobar")
+        XCTAssertEqual(ident.tokenLiteral(), "foobar")
+    }
+
     func testLetStatements() throws {
         let input = """
         let x = 5;
