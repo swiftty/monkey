@@ -2,10 +2,13 @@
 public struct Parser {
     public var lexer: Lexer
 
-    public var errors: [String] = []
+    public private(set) var errors: [String] = []
 
-    public var currToken: Token
-    public var peekToken: Token
+    var currToken: Token
+    var peekToken: Token
+
+    var prefixParseFns: [TokenType: () -> Expression] = [:]
+    var infixParseFns: [TokenType: (Expression) -> Expression] = [:]
 
     public init(lexer l: Lexer) {
         lexer = l
@@ -31,6 +34,16 @@ public struct Parser {
         return program
     }
 
+    private mutating func registerPrefix(_ fn: @escaping () -> Expression, to type: TokenType) {
+        prefixParseFns[type] = fn
+    }
+
+    private mutating func registerInfix(_ fn: @escaping (Expression) -> Expression, to type: TokenType) {
+        infixParseFns[type] = fn
+    }
+}
+
+extension Parser {
     private mutating func peekError(_ type: TokenType) {
         let message = "expected next token to be \(type). got \(peekToken.type) insted"
         errors.append(message)
