@@ -14,6 +14,9 @@ private enum Precedence: Int, Comparable {
 
 
 public struct Parser {
+    typealias PrefixParser = (inout Parser) -> Expression?
+    typealias InfixParser = (inout Parser, Expression) -> Expression
+
     public var lexer: Lexer
 
     public private(set) var errors: [String] = []
@@ -21,15 +24,16 @@ public struct Parser {
     var currToken: Token
     var peekToken: Token
 
-    var prefixParseFns: [TokenType: () -> Expression] = [:]
-    var infixParseFns: [TokenType: (Expression) -> Expression] = [:]
+    var prefixParseFns: [TokenType: PrefixParser] = [:]
+    var infixParseFns: [TokenType: InfixParser] = [:]
 
     public init(lexer l: Lexer) {
         lexer = l
         currToken = lexer.nextToken()
         peekToken = lexer.nextToken()
 
-        registerPrefix(parseIdentifier, to: .IDENT)
+        registerPrefix(parseIdentifier(), to: .IDENT)
+        registerPrefix(parseIntegerLiteral(), to: .INT)
     }
 
     public mutating func nextToken() {
@@ -50,16 +54,26 @@ public struct Parser {
         return program
     }
 
-    private mutating func registerPrefix(_ fn: @escaping () -> Expression, to type: TokenType) {
+    private mutating func registerPrefix(_ fn: @escaping PrefixParser, to type: TokenType) {
         prefixParseFns[type] = fn
     }
 
-    private mutating func registerInfix(_ fn: @escaping (Expression) -> Expression, to type: TokenType) {
+    private mutating func registerInfix(_ fn: @escaping InfixParser, to type: TokenType) {
         infixParseFns[type] = fn
     }
 
-    private func parseIdentifier() -> Expression {
-        Identifier(token: currToken, value: currToken.literal)
+    private func parseIdentifier() -> PrefixParser {
+        return { Identifier(token: $0.currToken, value: $0.currToken.literal) }
+    }
+
+    private func parseIntegerLiteral() -> PrefixParser {
+        return {
+            guard let value = Int64($0.currToken.literal) else {
+                $0.errors.append("could not parse \($0.currToken.literal) as integer")
+                return nil
+            }
+            return IntegerLiteral(token: $0.currToken, value: value)
+        }
     }
 }
 
@@ -98,7 +112,7 @@ extension Parser {
 
 extension Parser {
     private mutating func parseExpression(_ precedence: Precedence) -> Expression? {
-        prefixParseFns[currToken.type]?()
+        prefixParseFns[currToken.type]?(&self)
     }
 }
 

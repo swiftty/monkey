@@ -27,6 +27,31 @@ final class ParserTests: XCTestCase {
         XCTAssertEqual(ident.tokenLiteral(), "foobar")
     }
 
+    func testIntegerLiteralExpression() throws {
+        let input = """
+        5;
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+        guard let literal = stmt.expression as? IntegerLiteral else {
+            XCTFail("stmt not Identifier. got=\(type(of: stmt))")
+            return
+        }
+        XCTAssertEqual(literal.value, 5)
+        XCTAssertEqual(literal.tokenLiteral(), "5")
+    }
+
     func testLetStatements() throws {
         let input = """
         let x = 5;
