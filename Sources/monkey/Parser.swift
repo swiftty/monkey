@@ -49,6 +49,7 @@ public struct Parser {
         registerPrefix(parseIntegerLiteral(), to: .INT)
         registerPrefix(parsePrefixExpression(), to: .BANG)
         registerPrefix(parsePrefixExpression(), to: .MINUS)
+        registerPrefix(parseGroupedExpression(), to: .LPAREN)
 
         registerInfix(parseInfixExpression(), to: .PLUS)
         registerInfix(parseInfixExpression(), to: .MINUS)
@@ -112,6 +113,15 @@ public struct Parser {
             $0.nextToken()
             guard let right = $0.parseExpression(.PREFIX) else { return nil }
             return PrefixExpression(token: token, operator: token.literal, right: right)
+        }
+    }
+
+    private func parseGroupedExpression() -> PrefixParser {
+        return {
+            $0.nextToken()
+            guard let exp = $0.parseExpression(.LOWEST) else { return nil }
+            guard $0.expectPeek(.RPAREN) else { return nil }
+            return exp
         }
     }
 

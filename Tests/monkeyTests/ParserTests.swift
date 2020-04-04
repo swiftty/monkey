@@ -137,6 +137,11 @@ final class ParserTests: XCTestCase {
             ("false", "false"),
             ("3 > 5 == false", "((3 > 5) == false)"),
             ("3 < a == true", "((3 < a) == true)"),
+            ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            ("(5 + 5) * 2", "((5 + 5) * 2)"),
+            ("2 / (5 + 5)", "(2 / (5 + 5))"),
+            ("-(5 + 5)", "(-(5 + 5))"),
+            ("!(true == true)", "(!(true == true))")
         ]
 
         for t in tests {
