@@ -45,12 +45,12 @@ public struct IntegerLiteral: Expression {
 public struct PrefixExpression: Expression {
     public var token: Token
     public var `operator`: String
-    public var right: Expression?
+    public var right: Expression
 
     public var description: String {
         var buffer = "("
         buffer += `operator`
-        buffer += right?.description ?? ""
+        buffer += right.description
         buffer += ")"
         return buffer
     }
@@ -60,15 +60,15 @@ public struct PrefixExpression: Expression {
 
 public struct InfixExpression: Expression {
     public var token: Token
-    public var left: Expression?
+    public var left: Expression
     public var `operator`: String
-    public var right: Expression?
+    public var right: Expression
 
     public var description: String {
         var buffer = "("
-        buffer += left?.description ?? ""
+        buffer += left.description
         buffer += " \(`operator`) "
-        buffer += right?.description ?? ""
+        buffer += right.description
         buffer += ")"
         return buffer
     }
@@ -79,11 +79,9 @@ public struct InfixExpression: Expression {
 // MARK: - Statement -
 public struct ExpressionStatement: Statement {
     public var token: Token
-    public var expression: Expression?
+    public var expression: Expression
 
-    public var description: String {
-        expression?.description ?? ""
-    }
+    public var description: String { expression.description }
 
     public func tokenLiteral() -> String { token.literal }
 }

@@ -26,7 +26,7 @@ private let precedences = [
 // MARK: - Parser -
 public struct Parser {
     typealias PrefixParser = (inout Parser) -> Expression?
-    typealias InfixParser = (inout Parser, Expression?) -> Expression
+    typealias InfixParser = (inout Parser, Expression?) -> Expression?
 
     public var lexer: Lexer
 
@@ -102,21 +102,19 @@ public struct Parser {
         return {
             let token = $0.currToken
             $0.nextToken()
-            return PrefixExpression(token: token,
-                                    operator: token.literal,
-                                    right: $0.parseExpression(.PREFIX))
+            guard let right = $0.parseExpression(.PREFIX) else { return nil }
+            return PrefixExpression(token: token, operator: token.literal, right: right)
         }
     }
 
     private func parseInfixExpression() -> InfixParser {
         return { p, left in
+            guard let left = left else { return nil }
             let token = p.currToken
             let precedence = p.currPrecedence()
             p.nextToken()
-            return InfixExpression(token: token,
-                                   left: left,
-                                   operator: token.literal,
-                                   right: p.parseExpression(precedence))
+            guard let right = p.parseExpression(precedence) else { return nil }
+            return InfixExpression(token: token, left: left, operator: token.literal, right: right)
         }
     }
 }
@@ -187,13 +185,13 @@ extension Parser {
 
 extension Parser {
     private mutating func parseExpressionStatement() -> Statement? {
-        let stmt = ExpressionStatement(token: currToken, expression: parseExpression(.LOWEST))
-
-        if peekToken(is: .SEMICOLON) {
-            nextToken()
+        defer {
+            if peekToken(is: .SEMICOLON) {
+                nextToken()
+            }
         }
-
-        return stmt
+        guard let exp = parseExpression(.LOWEST) else { return nil }
+        return ExpressionStatement(token: currToken, expression: exp)
     }
 
     private mutating func parseLetStatement() -> Statement? {
