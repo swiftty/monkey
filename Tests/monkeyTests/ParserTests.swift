@@ -52,6 +52,30 @@ final class ParserTests: XCTestCase {
         XCTAssertEqual(literal.tokenLiteral(), "5")
     }
 
+    func testPrefixExpression() throws {
+        let tests: [(input: String, operator: String, value: Int64)] = [
+            ("!5", "!", 5),
+            ("-15", "-", 15)
+        ]
+
+        for t in tests {
+            var parser = Parser(lexer: .init(t.input))
+            let program = parser.parseProgram()
+            try checkParserErrors(parser: parser)
+
+            if case let count = program.statements.count, count != 1 {
+                XCTFail("program.statements does not contain 1 statements. got=\(count)")
+                continue
+            }
+
+            let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
+            let exp = try XCTUnwrap(stmt.expression as? PrefixExpression)
+
+            XCTAssertEqual(exp.operator, t.operator)
+            try checkIntegerLiteral(il: exp.right, value: t.value)
+        }
+    }
+
     func testLetStatements() throws {
         let input = """
         let x = 5;
@@ -114,6 +138,14 @@ final class ParserTests: XCTestCase {
 
         struct ParseError: Error {}
         throw ParseError()
+    }
+
+    private func checkIntegerLiteral(il: Expression?, value: Int64,
+                                     file: StaticString = #file, line: UInt = #line) throws {
+        let integ = try XCTUnwrap(il as? IntegerLiteral)
+
+        XCTAssertEqual(integ.value, value)
+        XCTAssertEqual(integ.tokenLiteral(), "\(value)")
     }
 
     private func checkLetStatement(stmt: Statement, name: String,

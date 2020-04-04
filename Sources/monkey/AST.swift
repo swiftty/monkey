@@ -20,17 +20,6 @@ public struct Program: CustomStringConvertible {
     }
 }
 
-public struct ExpressionStatement: Statement {
-    public var token: Token
-    public var expression: Expression?
-
-    public var description: String {
-        expression?.description ?? ""
-    }
-
-    public func tokenLiteral() -> String { token.literal }
-}
-
 public struct Identifier: Expression {
     public var token: Token
     public var value: String
@@ -48,6 +37,34 @@ public struct IntegerLiteral: Expression {
 
     public var description: String {
         token.literal
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
+public struct PrefixExpression: Expression {
+    public var token: Token
+    public var `operator`: String
+    public var right: Expression?
+
+    public var description: String {
+        var buffer = "("
+        buffer += `operator`
+        buffer += right?.description ?? ""
+        buffer += ")"
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
+// MARK: - Statement -
+public struct ExpressionStatement: Statement {
+    public var token: Token
+    public var expression: Expression?
+
+    public var description: String {
+        expression?.description ?? ""
     }
 
     public func tokenLiteral() -> String { token.literal }

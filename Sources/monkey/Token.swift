@@ -8,6 +8,10 @@ public struct TokenType: RawRepresentable, Equatable, Hashable {
     }
 }
 
+extension TokenType: CustomStringConvertible {
+    public var description: String { rawValue }
+}
+
 public struct Token {
     public var type: TokenType
     public var literal: String

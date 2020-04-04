@@ -34,6 +34,8 @@ public struct Parser {
 
         registerPrefix(parseIdentifier(), to: .IDENT)
         registerPrefix(parseIntegerLiteral(), to: .INT)
+        registerPrefix(parsePrefixExpression(), to: .BANG)
+        registerPrefix(parsePrefixExpression(), to: .MINUS)
     }
 
     public mutating func nextToken() {
@@ -75,12 +77,26 @@ public struct Parser {
             return IntegerLiteral(token: $0.currToken, value: value)
         }
     }
+
+    private func parsePrefixExpression() -> PrefixParser {
+        return {
+            let token = $0.currToken
+            $0.nextToken()
+            return PrefixExpression(token: token,
+                                    operator: token.literal,
+                                    right: $0.parseExpression(.PREFIX))
+        }
+    }
 }
 
 extension Parser {
     private mutating func peekError(_ type: TokenType) {
         let message = "expected next token to be \(type). got \(peekToken.type) insted"
         errors.append(message)
+    }
+
+    private mutating func noPrefixParseFnError(_ type: TokenType) {
+        errors.append("no prefix parse function for `\(type)` found")
     }
 
     private mutating func parseStatement() -> Statement? {
@@ -112,7 +128,11 @@ extension Parser {
 
 extension Parser {
     private mutating func parseExpression(_ precedence: Precedence) -> Expression? {
-        prefixParseFns[currToken.type]?(&self)
+        if let prefix = prefixParseFns[currToken.type] {
+            return prefix(&self)
+        }
+        noPrefixParseFnError(currToken.type)
+        return nil
     }
 }
 
