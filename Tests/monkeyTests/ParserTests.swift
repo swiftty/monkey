@@ -107,6 +107,31 @@ final class ParserTests: XCTestCase {
         }
     }
 
+    func testOperatorPrecedence() throws {
+        let tests: [(input: String, expected: String)] = [
+            ("-a * b", "((-a) * b)"),
+            ("!-a", "(!(-a))"),
+            ("a + b + c", "((a + b) + c)"),
+            ("a + b - c", "((a + b) - c)"),
+            ("a * b * c", "((a * b) * c)"),
+            ("a * b / c", "((a * b) / c)"),
+            ("a + b / c", "(a + (b / c))"),
+            ("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"),
+            ("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"),
+            ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
+            ("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"),
+            ("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))")
+        ]
+
+        for t in tests {
+            var parser = Parser(lexer: .init(t.input))
+            let program = parser.parseProgram()
+            try checkParserErrors(parser: parser)
+
+            XCTAssertEqual(program.description, t.expected)
+        }
+    }
+
     func testLetStatements() throws {
         let input = """
         let x = 5;
