@@ -44,6 +44,8 @@ public struct Parser {
         peekToken = lexer.nextToken()
 
         registerPrefix(parseIdentifier(), to: .IDENT)
+        registerPrefix(parseBooleanLiteral(), to: .TRUE)
+        registerPrefix(parseBooleanLiteral(), to: .FALSE)
         registerPrefix(parseIntegerLiteral(), to: .INT)
         registerPrefix(parsePrefixExpression(), to: .BANG)
         registerPrefix(parsePrefixExpression(), to: .MINUS)
@@ -86,6 +88,12 @@ public struct Parser {
 
     private func parseIdentifier() -> PrefixParser {
         return { Identifier(token: $0.currToken, value: $0.currToken.literal) }
+    }
+
+    private func parseBooleanLiteral() -> PrefixParser {
+        return {
+            BooleanLiteral(token: $0.currToken, value: $0.currToken(is: .TRUE))
+        }
     }
 
     private func parseIntegerLiteral() -> PrefixParser {

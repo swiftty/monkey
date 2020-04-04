@@ -31,6 +31,17 @@ public struct Identifier: Expression {
     public func tokenLiteral() -> String { token.literal }
 }
 
+public struct BooleanLiteral: Expression {
+    public var token: Token
+    public var value: Bool
+
+    public var description: String {
+        token.literal
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
 public struct IntegerLiteral: Expression {
     public var token: Token
     public var value: Int64
