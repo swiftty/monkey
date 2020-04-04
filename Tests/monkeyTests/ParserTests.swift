@@ -19,12 +19,7 @@ final class ParserTests: XCTestCase {
             XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
             return
         }
-        guard let ident = stmt.expression as? Identifier else {
-            XCTFail("stmt not Identifier. got=\(type(of: stmt))")
-            return
-        }
-        XCTAssertEqual(ident.value, "foobar")
-        XCTAssertEqual(ident.tokenLiteral(), "foobar")
+        try checkIdentifier(stmt.expression, value: "foobar")
     }
 
     func testIntegerLiteralExpression() throws {
@@ -44,12 +39,7 @@ final class ParserTests: XCTestCase {
             XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
             return
         }
-        guard let literal = stmt.expression as? IntegerLiteral else {
-            XCTFail("stmt not Identifier. got=\(type(of: stmt))")
-            return
-        }
-        XCTAssertEqual(literal.value, 5)
-        XCTAssertEqual(literal.tokenLiteral(), "5")
+        try checkIntegerLiteral(stmt.expression, value: 5)
     }
 
     func testPrefixExpression() throws {
@@ -72,7 +62,7 @@ final class ParserTests: XCTestCase {
             let exp = try XCTUnwrap(stmt.expression as? PrefixExpression)
 
             XCTAssertEqual(exp.operator, t.operator)
-            try checkIntegerLiteral(il: exp.right, value: t.value)
+            try checkIntegerLiteral(exp.right, value: t.value)
         }
     }
 
@@ -99,11 +89,7 @@ final class ParserTests: XCTestCase {
             }
 
             let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
-            let exp = try XCTUnwrap(stmt.expression as? InfixExpression)
-
-            XCTAssertEqual(exp.operator, t.operator)
-            try checkIntegerLiteral(il: exp.left, value: t.left)
-            try checkIntegerLiteral(il: exp.right, value: t.right)
+            try checkInfixExpression(stmt.expression, left: t.left, operator: t.operator, right: t.right)
         }
     }
 
@@ -196,12 +182,50 @@ final class ParserTests: XCTestCase {
         throw ParseError()
     }
 
-    private func checkIntegerLiteral(il: Expression?, value: Int64,
+    private func checkLiteralExpresseion<T>(_ exp: Expression?, expected: T,
+                                            file: StaticString = #file, line: UInt = #line) throws {
+        switch expected {
+        case let v as Int:
+            try checkIntegerLiteral(exp, value: Int64(v), file: file, line: line)
+
+        case let v as Int64:
+            try checkIntegerLiteral(exp, value: v, file: file, line: line)
+
+
+        case let v as String:
+            try checkIdentifier(exp, value: v, file: file, line: line)
+
+        default:
+            XCTFail("type of exp not handled. got=\(T.self)", file: file, line: line)
+        }
+    }
+
+    private func checkIdentifier(_ exp: Expression?, value: String,
+                                 file: StaticString = #file, line: UInt = #line) throws {
+        let identifier = try XCTUnwrap(exp as? Identifier, file: file, line: line)
+
+        XCTAssertEqual(identifier.value, value, file: file, line: line)
+        XCTAssertEqual(identifier.tokenLiteral(), value, file: file, line: line)
+    }
+
+    private func checkIntegerLiteral(_ exp: Expression?, value: Int64,
                                      file: StaticString = #file, line: UInt = #line) throws {
-        let integ = try XCTUnwrap(il as? IntegerLiteral, file: file, line: line)
+        let integ = try XCTUnwrap(exp as? IntegerLiteral, file: file, line: line)
 
         XCTAssertEqual(integ.value, value, file: file, line: line)
         XCTAssertEqual(integ.tokenLiteral(), "\(value)", file: file, line: line)
+    }
+
+    private func checkInfixExpression<Left, Right>(_ exp: Expression?,
+                                                   left: Left,
+                                                   operator: String,
+                                                   right: Right,
+                                                   file: StaticString = #file, line: UInt = #line) throws {
+        let exp = try XCTUnwrap(exp as? InfixExpression, file: file, line: line)
+
+        XCTAssertEqual(exp.operator, `operator`, file: file, line: line)
+        try checkLiteralExpresseion(exp.left, expected: left, file: file, line: line)
+        try checkLiteralExpresseion(exp.right, expected: right, file: file, line: line)
     }
 
     private func checkLetStatement(stmt: Statement, name: String,
