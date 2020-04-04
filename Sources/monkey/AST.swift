@@ -58,6 +58,24 @@ public struct PrefixExpression: Expression {
     public func tokenLiteral() -> String { token.literal }
 }
 
+public struct InfixExpression: Expression {
+    public var token: Token
+    public var left: Expression?
+    public var `operator`: String
+    public var right: Expression?
+
+    public var description: String {
+        var buffer = "("
+        buffer += left?.description ?? ""
+        buffer += " \(`operator`) "
+        buffer += right?.description ?? ""
+        buffer += ")"
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
 // MARK: - Statement -
 public struct ExpressionStatement: Statement {
     public var token: Token

@@ -76,6 +76,37 @@ final class ParserTests: XCTestCase {
         }
     }
 
+    func testInfixExpression() throws {
+        let tests: [(input: String, left: Int64, operator: String, right: Int64)] = [
+            ("5 + 5", 5, "+", 5),
+            ("5 - 5", 5, "-", 5),
+            ("5 * 5", 5, "*", 5),
+            ("5 / 5", 5, "/", 5),
+            ("5 > 5", 5, ">", 5),
+            ("5 < 5", 5, "<", 5),
+            ("5 == 5", 5, "==", 5),
+            ("5 != 5", 5, "!=", 5),
+        ]
+
+        for t in tests {
+            var parser = Parser(lexer: .init(t.input))
+            let program = parser.parseProgram()
+            try checkParserErrors(parser: parser)
+
+            if case let count = program.statements.count, count != 1 {
+                XCTFail("program.statements does not contain 1 statements. got=\(count)")
+                continue
+            }
+
+            let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
+            let exp = try XCTUnwrap(stmt.expression as? InfixExpression)
+
+            XCTAssertEqual(exp.operator, t.operator)
+            try checkIntegerLiteral(il: exp.left, value: t.left)
+            try checkIntegerLiteral(il: exp.right, value: t.right)
+        }
+    }
+
     func testLetStatements() throws {
         let input = """
         let x = 5;
@@ -142,10 +173,10 @@ final class ParserTests: XCTestCase {
 
     private func checkIntegerLiteral(il: Expression?, value: Int64,
                                      file: StaticString = #file, line: UInt = #line) throws {
-        let integ = try XCTUnwrap(il as? IntegerLiteral)
+        let integ = try XCTUnwrap(il as? IntegerLiteral, file: file, line: line)
 
-        XCTAssertEqual(integ.value, value)
-        XCTAssertEqual(integ.tokenLiteral(), "\(value)")
+        XCTAssertEqual(integ.value, value, file: file, line: line)
+        XCTAssertEqual(integ.tokenLiteral(), "\(value)", file: file, line: line)
     }
 
     private func checkLetStatement(stmt: Statement, name: String,

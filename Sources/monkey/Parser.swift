@@ -12,10 +12,21 @@ private enum Precedence: Int, Comparable {
     }
 }
 
+private let precedences = [
+    TokenType.EQ: Precedence.EQUALS,
+    .NOT_EQ: .EQUALS,
+    .LT: .LESSGREATER,
+    .GT: .LESSGREATER,
+    .PLUS: .SUM,
+    .MINUS: .SUM,
+    .SLASH: .PRODUCT,
+    .ASTERISK: .PRODUCT
+]
 
+// MARK: - Parser -
 public struct Parser {
     typealias PrefixParser = (inout Parser) -> Expression?
-    typealias InfixParser = (inout Parser, Expression) -> Expression
+    typealias InfixParser = (inout Parser, Expression?) -> Expression
 
     public var lexer: Lexer
 
@@ -36,6 +47,15 @@ public struct Parser {
         registerPrefix(parseIntegerLiteral(), to: .INT)
         registerPrefix(parsePrefixExpression(), to: .BANG)
         registerPrefix(parsePrefixExpression(), to: .MINUS)
+
+        registerInfix(parseInfixExpression(), to: .PLUS)
+        registerInfix(parseInfixExpression(), to: .MINUS)
+        registerInfix(parseInfixExpression(), to: .SLASH)
+        registerInfix(parseInfixExpression(), to: .ASTERISK)
+        registerInfix(parseInfixExpression(), to: .EQ)
+        registerInfix(parseInfixExpression(), to: .NOT_EQ)
+        registerInfix(parseInfixExpression(), to: .LT)
+        registerInfix(parseInfixExpression(), to: .GT)
     }
 
     public mutating func nextToken() {
@@ -87,6 +107,18 @@ public struct Parser {
                                     right: $0.parseExpression(.PREFIX))
         }
     }
+
+    private func parseInfixExpression() -> InfixParser {
+        return { p, left in
+            let token = p.currToken
+            let precedence = p.currPrecedence()
+            p.nextToken()
+            return InfixExpression(token: token,
+                                   left: left,
+                                   operator: token.literal,
+                                   right: p.parseExpression(precedence))
+        }
+    }
 }
 
 extension Parser {
@@ -115,6 +147,14 @@ extension Parser {
         peekToken.type == type
     }
 
+    private func peekPrecedence() -> Precedence {
+        precedences[peekToken.type] ?? .LOWEST
+    }
+
+    private func currPrecedence() -> Precedence {
+        precedences[currToken.type] ?? .LOWEST
+    }
+
     private mutating func expectPeek(_ type: TokenType) -> Bool {
         if peekToken(is: type) {
             nextToken()
@@ -128,11 +168,20 @@ extension Parser {
 
 extension Parser {
     private mutating func parseExpression(_ precedence: Precedence) -> Expression? {
-        if let prefix = prefixParseFns[currToken.type] {
-            return prefix(&self)
+        guard let prefix = prefixParseFns[currToken.type] else {
+            noPrefixParseFnError(currToken.type)
+            return nil
         }
-        noPrefixParseFnError(currToken.type)
-        return nil
+
+        var left = prefix(&self)
+        while !peekToken(is: .SEMICOLON), precedence < peekPrecedence() {
+            guard let infix = infixParseFns[peekToken.type] else {
+                return left
+            }
+            nextToken()
+            left = infix(&self, left)
+        }
+        return left
     }
 }
 
