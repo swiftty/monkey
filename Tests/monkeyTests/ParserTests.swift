@@ -202,6 +202,50 @@ final class ParserTests: XCTestCase {
         }
     }
 
+    func testIfExpression() throws {
+        let input = "if (x < y) { x }"
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+
+        let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
+        let exp = try XCTUnwrap(stmt.expression as? IfExpression)
+        try checkInfixExpression(exp.condition, left: "x", operator: "<", right: "y")
+
+        let consequence = try XCTUnwrap(exp.consequence.statements.first as? ExpressionStatement)
+        try checkLiteralExpresseion(consequence.expression, expected: "x")
+        XCTAssertNil(exp.alternative)
+    }
+
+    func testIfElseExpression() throws {
+        let input = "if (x < y) { x } else { y }"
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+
+        let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
+        let exp = try XCTUnwrap(stmt.expression as? IfExpression)
+        try checkInfixExpression(exp.condition, left: "x", operator: "<", right: "y")
+
+        let consequence = try XCTUnwrap(exp.consequence.statements.first as? ExpressionStatement)
+        try checkLiteralExpresseion(consequence.expression, expected: "x")
+
+        let alternative = try XCTUnwrap(exp.alternative?.statements.first as? ExpressionStatement)
+        try checkLiteralExpresseion(alternative.expression, expected: "y")
+    }
+}
+
+extension ParserTests {
     private func checkParserErrors(parser: Parser,
                                    file: StaticString = #file, line: UInt = #line) throws {
         if parser.errors.isEmpty {

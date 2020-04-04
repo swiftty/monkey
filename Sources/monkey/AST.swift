@@ -87,6 +87,29 @@ public struct InfixExpression: Expression {
     public func tokenLiteral() -> String { token.literal }
 }
 
+public struct IfExpression: Expression {
+    public var token: Token
+    public var condition: Expression
+    public var consequence: BlockStatement
+    public var alternative: BlockStatement?
+
+    public var description: String {
+        var buffer = ""
+        buffer += "if"
+        buffer += condition.description
+        buffer += " "
+        buffer += consequence.description
+        if let alt = alternative {
+            buffer += "else "
+            buffer += alt.description
+        }
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
+
 // MARK: - Statement -
 public struct ExpressionStatement: Statement {
     public var token: Token
@@ -117,8 +140,6 @@ public struct LetStatement: Statement {
     public func tokenLiteral() -> String { token.literal }
 }
 
-
-
 public struct ReturnStatement: Statement {
     public var token: Token
     public var returnValue: Expression?
@@ -131,6 +152,17 @@ public struct ReturnStatement: Statement {
         }
         buffer += ";"
         return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
+public struct BlockStatement: Statement {
+    public var token: Token
+    public var statements: [Statement]
+
+    public var description: String {
+        statements.map(\.description).joined()
     }
 
     public func tokenLiteral() -> String { token.literal }
