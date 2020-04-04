@@ -64,9 +64,11 @@ final class ParserTests: XCTestCase {
     }
 
     func testPrefixExpression() throws {
-        let tests: [(input: String, operator: String, value: Int64)] = [
+        let tests: [(input: String, operator: String, value: Any)] = [
             ("!5", "!", 5),
-            ("-15", "-", 15)
+            ("-15", "-", 15),
+            ("!true;", "!", true),
+            ("!false;", "!", false)
         ]
 
         for t in tests {
@@ -88,7 +90,7 @@ final class ParserTests: XCTestCase {
     }
 
     func testInfixExpression() throws {
-        let tests: [(input: String, left: Int64, operator: String, right: Int64)] = [
+        let tests: [(input: String, left: Any, operator: String, right: Any)] = [
             ("5 + 5", 5, "+", 5),
             ("5 - 5", 5, "-", 5),
             ("5 * 5", 5, "*", 5),
@@ -97,6 +99,9 @@ final class ParserTests: XCTestCase {
             ("5 < 5", 5, "<", 5),
             ("5 == 5", 5, "==", 5),
             ("5 != 5", 5, "!=", 5),
+            ("true == true", true, "==", true),
+            ("true != false", true, "!=", false),
+            ("false == false", false, "==", false)
         ]
 
         for t in tests {
@@ -127,7 +132,11 @@ final class ParserTests: XCTestCase {
             ("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"),
             ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
             ("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"),
-            ("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))")
+            ("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
+            ("true", "true"),
+            ("false", "false"),
+            ("3 > 5 == false", "((3 > 5) == false)"),
+            ("3 < a == true", "((3 < a) == true)"),
         ]
 
         for t in tests {
