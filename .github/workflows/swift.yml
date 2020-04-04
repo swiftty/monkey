@@ -40,4 +40,4 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
     - name: Run tests
-      run: swift test -v
+      run: swift test --enable-test-discovery -v

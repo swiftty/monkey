@@ -205,9 +205,4 @@ final class ParserTests: XCTestCase {
             return
         }
     }
-
-    static var allTests = [
-        ("testLetStatements", testLetStatements),
-        ("testReturnStatements", testReturnStatements)
-    ]
 }

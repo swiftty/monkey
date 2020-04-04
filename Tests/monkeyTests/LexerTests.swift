@@ -116,8 +116,4 @@ final class LexerTests: XCTestCase {
             }
         }
     }
-
-    static var allTests = [
-        ("testNextToken", testNextToken),
-    ]
 }
