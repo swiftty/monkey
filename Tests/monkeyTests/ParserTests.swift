@@ -63,6 +63,34 @@ final class ParserTests: XCTestCase {
         try checkLiteralExpresseion(stmt.expression, expected: 5)
     }
 
+    func testFunctionLiteralExpression() throws {
+        let input = """
+        fn(x, y) { x + y; }
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+
+        let function = try XCTUnwrap(stmt.expression as? FunctionLiteral)
+        XCTAssertEqual(function.parameters.count, 2)
+        try checkLiteralExpresseion(function.parameters[0], expected: "x")
+        try checkLiteralExpresseion(function.parameters[1], expected: "y")
+
+        XCTAssertEqual(function.body.statements.count, 1)
+        let bodyStmt = try XCTUnwrap(function.body.statements.first as? ExpressionStatement)
+        try checkInfixExpression(bodyStmt.expression, left: "x", operator: "+", right: "y")
+    }
+
     func testPrefixExpression() throws {
         let tests: [(input: String, operator: String, value: Any)] = [
             ("!5", "!", 5),

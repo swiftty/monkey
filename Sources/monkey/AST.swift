@@ -53,6 +53,24 @@ public struct IntegerLiteral: Expression {
     public func tokenLiteral() -> String { token.literal }
 }
 
+public struct FunctionLiteral: Expression {
+    public var token: Token
+    public var parameters: [Identifier]
+    public var body: BlockStatement
+
+    public var description: String {
+        var buffer = ""
+        buffer += tokenLiteral()
+        buffer += "("
+        buffer += parameters.map(\.description).joined()
+        buffer += ") "
+        buffer += body.description
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
 public struct PrefixExpression: Expression {
     public var token: Token
     public var `operator`: String
