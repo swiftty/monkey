@@ -50,6 +50,7 @@ public struct Parser {
         registerPrefix(parsePrefixExpression(), to: .BANG)
         registerPrefix(parsePrefixExpression(), to: .MINUS)
         registerPrefix(parseGroupedExpression(), to: .LPAREN)
+        registerPrefix(parseIfExpression(), to: .IF)
 
         registerInfix(parseInfixExpression(), to: .PLUS)
         registerInfix(parseInfixExpression(), to: .MINUS)
@@ -122,6 +123,30 @@ public struct Parser {
             guard let exp = $0.parseExpression(.LOWEST) else { return nil }
             guard $0.expectPeek(.RPAREN) else { return nil }
             return exp
+        }
+    }
+
+    private func parseIfExpression() -> PrefixParser {
+        return {
+            guard $0.expectPeek(.LPAREN) else { return nil }
+            let token = $0.currToken
+            $0.nextToken()
+            guard let condition = $0.parseExpression(.LOWEST) else { return nil }
+            guard $0.expectPeek(.RPAREN) else { return nil }
+            guard $0.expectPeek(.LBRACE) else { return nil }
+
+            let consequence = $0.parseBlockStatement()
+            var alternative: BlockStatement?
+            if $0.peekToken(is: .ELSE) {
+                $0.nextToken()
+                guard $0.expectPeek(.LBRACE) else { return nil }
+                alternative = $0.parseBlockStatement()
+            }
+
+            return IfExpression(token: token,
+                                condition: condition,
+                                consequence: consequence,
+                                alternative: alternative)
         }
     }
 
@@ -240,5 +265,18 @@ extension Parser {
         }
 
         return stmt
+    }
+
+    private mutating func parseBlockStatement() -> BlockStatement {
+        var block = BlockStatement(token: currToken, statements: [])
+        nextToken()
+
+        while !currToken(is: .RBRACE), !currToken(is: .EOF) {
+            if let stmt = parseStatement() {
+                block.statements.append(stmt)
+            }
+            nextToken()
+        }
+        return block
     }
 }
