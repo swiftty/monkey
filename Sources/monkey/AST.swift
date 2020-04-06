@@ -127,6 +127,23 @@ public struct IfExpression: Expression {
     public func tokenLiteral() -> String { token.literal }
 }
 
+public struct CallExpression: Expression {
+    public var token: Token
+    public var function: Expression
+    public var arguments: [Expression]
+
+    public var description: String {
+        var buffer = ""
+        buffer += function.description
+        buffer += "("
+        buffer += arguments.map(\.description).joined(separator: ", ")
+        buffer += ")"
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
 
 // MARK: - Statement -
 public struct ExpressionStatement: Statement {

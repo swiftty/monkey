@@ -113,6 +113,23 @@ final class ParserTests: XCTestCase {
         }
     }
 
+    func testCallExpression() throws {
+        let input = "add(1, 2 * 3, 4 + 5);"
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
+        let exp = try XCTUnwrap(stmt.expression as? CallExpression)
+
+        try checkLiteralExpresseion(exp.function, expected: "add")
+        XCTAssertEqual(exp.arguments.count, 3)
+        try checkLiteralExpresseion(exp.arguments[0], expected: 1)
+        try checkInfixExpression(exp.arguments[1], 2, "*", 3)
+        try checkInfixExpression(exp.arguments[2], 4, "+", 5)
+    }
+
     func testPrefixExpression() throws {
         let tests: [(input: String, operator: String, value: Any)] = [
             ("!5", "!", 5),
@@ -191,7 +208,10 @@ final class ParserTests: XCTestCase {
             ("(5 + 5) * 2", "((5 + 5) * 2)"),
             ("2 / (5 + 5)", "(2 / (5 + 5))"),
             ("-(5 + 5)", "(-(5 + 5))"),
-            ("!(true == true)", "(!(true == true))")
+            ("!(true == true)", "(!(true == true))"),
+            ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
+            ("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))", "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"),
+            ("add(a + b + c * d / f)", "add(((a + b) + ((c * d) / f)))")
         ]
 
         for t in tests {

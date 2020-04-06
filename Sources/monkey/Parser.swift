@@ -20,7 +20,8 @@ private let precedences = [
     .PLUS: .SUM,
     .MINUS: .SUM,
     .SLASH: .PRODUCT,
-    .ASTERISK: .PRODUCT
+    .ASTERISK: .PRODUCT,
+    .LPAREN: .CALL
 ]
 
 // MARK: - Parser -
@@ -61,6 +62,7 @@ public struct Parser {
         registerInfix(parseInfixExpression(), to: .NOT_EQ)
         registerInfix(parseInfixExpression(), to: .LT)
         registerInfix(parseInfixExpression(), to: .GT)
+        registerInfix(parseCallExpression(), to: .LPAREN)
     }
 
     public mutating func nextToken() {
@@ -173,6 +175,47 @@ public struct Parser {
             p.nextToken()
             guard let right = p.parseExpression(precedence) else { return nil }
             return InfixExpression(token: token, left: left, operator: token.literal, right: right)
+        }
+    }
+
+    private func parseCallExpression() -> InfixParser {
+        return { p, left in
+            let token = p.currToken
+            guard let function = left else { return nil }
+            guard let arguments = p.parseCallArguments() else { return nil }
+            return CallExpression(token: token, function: function, arguments: arguments)
+        }
+    }
+
+    private mutating func parseCallArguments() -> [Expression]? {
+        var args: [Expression] = []
+
+        if peekToken(is: .RPAREN) {
+            nextToken()
+            return args
+        }
+
+        struct NilError: Error {}
+
+        func appendArgument() throws {
+            guard let arg = parseExpression(.LOWEST) else { throw NilError() }
+            args.append(arg)
+        }
+
+        do {
+            nextToken()
+            try appendArgument()
+            while peekToken(is: .COMMA) {
+                nextToken()
+                nextToken()
+                try appendArgument()
+            }
+            if !expectPeek(.RPAREN) {
+                return nil
+            }
+            return args
+        } catch {
+            return nil
         }
     }
 }
