@@ -88,7 +88,29 @@ final class ParserTests: XCTestCase {
 
         XCTAssertEqual(function.body.statements.count, 1)
         let bodyStmt = try XCTUnwrap(function.body.statements.first as? ExpressionStatement)
-        try checkInfixExpression(bodyStmt.expression, left: "x", operator: "+", right: "y")
+        try checkInfixExpression(bodyStmt.expression, "x", "+", "y")
+    }
+
+    func testFunctionParameter() throws {
+        let tests: [(input: String, expectedParams: [String])] = [
+            ("fn() {};", []),
+            ("fn(x) {};", ["x"]),
+            ("fn(x, y, z) {};", ["x", "y", "z"])
+        ]
+
+        for t in tests {
+            var parser = Parser(lexer: .init(t.input))
+            let program = parser.parseProgram()
+            try checkParserErrors(parser: parser)
+
+            let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
+            let function = try XCTUnwrap(stmt.expression as? FunctionLiteral)
+
+            XCTAssertEqual(function.parameters.count, t.expectedParams.count)
+            for (p, ident) in zip(function.parameters, t.expectedParams) {
+                try checkLiteralExpresseion(p, expected: ident)
+            }
+        }
     }
 
     func testPrefixExpression() throws {
@@ -143,7 +165,7 @@ final class ParserTests: XCTestCase {
             }
 
             let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
-            try checkInfixExpression(stmt.expression, left: t.left, operator: t.operator, right: t.right)
+            try checkInfixExpression(stmt.expression, t.left, t.operator, t.right)
         }
     }
 
@@ -243,7 +265,7 @@ final class ParserTests: XCTestCase {
 
         let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
         let exp = try XCTUnwrap(stmt.expression as? IfExpression)
-        try checkInfixExpression(exp.condition, left: "x", operator: "<", right: "y")
+        try checkInfixExpression(exp.condition, "x", "<", "y")
 
         let consequence = try XCTUnwrap(exp.consequence.statements.first as? ExpressionStatement)
         try checkLiteralExpresseion(consequence.expression, expected: "x")
@@ -263,7 +285,7 @@ final class ParserTests: XCTestCase {
 
         let stmt = try XCTUnwrap(program.statements[0] as? ExpressionStatement)
         let exp = try XCTUnwrap(stmt.expression as? IfExpression)
-        try checkInfixExpression(exp.condition, left: "x", operator: "<", right: "y")
+        try checkInfixExpression(exp.condition, "x", "<", "y")
 
         let consequence = try XCTUnwrap(exp.consequence.statements.first as? ExpressionStatement)
         try checkLiteralExpresseion(consequence.expression, expected: "x")
@@ -328,9 +350,9 @@ extension ParserTests {
     }
 
     private func checkInfixExpression<Left, Right>(_ exp: Expression?,
-                                                   left: Left,
-                                                   operator: String,
-                                                   right: Right,
+                                                   _ left: Left,
+                                                   _ operator: String,
+                                                   _ right: Right,
                                                    file: StaticString = #file, line: UInt = #line) throws {
         let exp = try XCTUnwrap(exp as? InfixExpression, file: file, line: line)
 

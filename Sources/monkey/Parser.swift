@@ -51,6 +51,7 @@ public struct Parser {
         registerPrefix(parsePrefixExpression(), to: .MINUS)
         registerPrefix(parseGroupedExpression(), to: .LPAREN)
         registerPrefix(parseIfExpression(), to: .IF)
+        registerPrefix(parseFunctionLiteral(), to: .FUNCTION)
 
         registerInfix(parseInfixExpression(), to: .PLUS)
         registerInfix(parseInfixExpression(), to: .MINUS)
@@ -105,6 +106,20 @@ public struct Parser {
                 return nil
             }
             return IntegerLiteral(token: $0.currToken, value: value)
+        }
+    }
+
+    private func parseFunctionLiteral() -> PrefixParser {
+        return {
+            let token = $0.currToken
+
+            guard $0.expectPeek(.LPAREN) else { return nil }
+            guard let parameters = $0.parseFunctionParameters() else { return nil }
+            guard $0.expectPeek(.LBRACE) else { return nil }
+
+            return FunctionLiteral(token: token,
+                                   parameters: parameters,
+                                   body: $0.parseBlockStatement())
         }
     }
 
@@ -278,5 +293,31 @@ extension Parser {
             nextToken()
         }
         return block
+    }
+
+    private mutating func parseFunctionParameters() -> [Identifier]? {
+        var identifiers: [Identifier] = []
+
+        if peekToken(is: .RPAREN) {
+            nextToken()
+            return identifiers
+        }
+
+        nextToken()
+
+        identifiers.append(Identifier(token: currToken, value: currToken.literal))
+
+        while peekToken(is: .COMMA) {
+            nextToken()
+            nextToken()
+
+            identifiers.append(Identifier(token: currToken, value: currToken.literal))
+        }
+
+        if !expectPeek(.RPAREN) {
+            return nil
+        }
+
+        return identifiers
     }
 }
