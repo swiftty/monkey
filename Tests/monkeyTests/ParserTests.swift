@@ -224,51 +224,53 @@ final class ParserTests: XCTestCase {
     }
 
     func testLetStatements() throws {
-        let input = """
-        let x = 5;
-        let y = 10;
-        let foobar = 838383;
-        """
-
-        let expected = [
-            "x", "y", "foobar"
+        let tests: [(input: String, expectedIdentifier: String, expectedValue: Any)] = [
+            ("let x = 5;", "x", 5),
+            ("let y = true;", "y", true),
+            ("let foobar = y;", "foobar", "y")
         ]
 
-        var parser = Parser(lexer: .init(input))
-        let program = parser.parseProgram()
-        try checkParserErrors(parser: parser)
-        if case let count = program.statements.count, count != expected.count {
-            XCTFail("program.statements does not contain 3 statements. got=\(count)")
-            return
-        }
+        for t in tests {
+            var parser = Parser(lexer: .init(t.input))
+            let program = parser.parseProgram()
+            try checkParserErrors(parser: parser)
+            if case let count = program.statements.count, count != 1 {
+                XCTFail("program.statements does not contain 1 statements. got=\(count)")
+                continue
+            }
 
-        for (i, name) in expected.enumerated() {
-            let stmt = program.statements[i]
-            checkLetStatement(stmt: stmt, name: name)
+            let stmt = program.statements[0]
+            try checkLetStatement(stmt, expected: t.expectedIdentifier)
+
+            let val = try XCTUnwrap(stmt as? LetStatement).value
+            try checkLiteralExpresseion(val, expected: t.expectedValue)
         }
     }
 
     func testReturnStatements() throws {
-        let input = """
-        return 5;
-        return 10;
-        return 993322;
-        """
+        let tests: [(input: String, expectedValue: Any?)] = [
+            ("return;", nil),
+            ("return 5;", 5),
+            ("return true;", true),
+            ("return foobar;", "foobar")
+        ]
 
-        var parser = Parser(lexer: .init(input))
-        let program = parser.parseProgram()
-        try checkParserErrors(parser: parser)
-        if case let count = program.statements.count, count != 3 {
-            XCTFail("program.statements does not contain 3 statements. got=\(count)")
-            return
-        }
-
-        for stmt in program.statements {
-            guard let returnStmt = stmt as? ReturnStatement else {
-                XCTFail("stmt not ReturnStatement. got=\(type(of: stmt))")
+        for t in tests {
+            var parser = Parser(lexer: .init(t.input))
+            let program = parser.parseProgram()
+            try checkParserErrors(parser: parser)
+            if case let count = program.statements.count, count != 1 {
+                XCTFail("program.statements does not contain 1 statements. got=\(count)")
                 continue
             }
-            XCTAssertEqual(returnStmt.tokenLiteral(), "return")
+
+            let retStmt = try XCTUnwrap(program.statements[0] as? ReturnStatement)
+            XCTAssertEqual(retStmt.tokenLiteral(), "return")
+            if let expected = t.expectedValue {
+                try checkLiteralExpresseion(retStmt.returnValue, expected: expected)
+            } else {
+                XCTAssertNil(retStmt.returnValue)
+            }
         }
     }
 
@@ -381,30 +383,12 @@ extension ParserTests {
         try checkLiteralExpresseion(exp.right, expected: right, file: file, line: line)
     }
 
-    private func checkLetStatement(stmt: Statement, name: String,
-                                   file: StaticString = #file, line: UInt = #line) {
-        if case let literal = stmt.tokenLiteral(), literal != "let" {
-            XCTFail("stmt.tokenLiteral() not 'let'. got=\(literal)",
-                file: file, line: line)
-            return
-        }
+    private func checkLetStatement(_ stmt: Statement, expected name: String,
+                                   file: StaticString = #file, line: UInt = #line) throws {
+        XCTAssertEqual(stmt.tokenLiteral(), "let", file: file, line: line)
 
-        guard let letStmt = stmt as? LetStatement else {
-            XCTFail("stmt not LetStatement. got=\(type(of: stmt))",
-                file: file, line: line)
-            return
-        }
-
-        if letStmt.name.value != name {
-            XCTFail("letStmt.name.value not '\(name)'. got=\(letStmt.name.value)",
-                file: file, line: line)
-            return
-        }
-
-        if letStmt.name.tokenLiteral() != name {
-            XCTFail("letStmt.name.tokenLiteral() not '\(name)'. got=\(letStmt.name.tokenLiteral())",
-                file: file, line: line)
-            return
-        }
+        let letStmt = try XCTUnwrap(stmt as? LetStatement, file: file, line: line)
+        XCTAssertEqual(letStmt.name.value, name, file: file, line: line)
+        XCTAssertEqual(letStmt.name.tokenLiteral(), name, file: file, line: line)
     }
 }

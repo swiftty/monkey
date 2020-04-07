@@ -306,23 +306,33 @@ extension Parser {
             return nil
         }
 
-        while !currToken(is: .SEMICOLON) {
-            nextToken()
+        nextToken()
+
+        defer {
+            if peekToken(is: .SEMICOLON) {
+                nextToken()
+            }
         }
 
-        return LetStatement(token: token, name: name, value: nil)
+        return LetStatement(token: token, name: name, value: parseExpression(.LOWEST))
     }
 
     private mutating func parseReturnStatement() -> Statement? {
-        let stmt = ReturnStatement(token: currToken, returnValue: nil)
+        let token = currToken
 
         nextToken()
 
-        while !currToken(is: .SEMICOLON) {
-            nextToken()
+        if currToken(is: .SEMICOLON) {
+            return ReturnStatement(token: token, returnValue: nil)
         }
 
-        return stmt
+        defer {
+            if peekToken(is: .SEMICOLON) {
+                nextToken()
+            }
+        }
+
+        return ReturnStatement(token: token, returnValue: parseExpression(.LOWEST))
     }
 
     private mutating func parseBlockStatement() -> BlockStatement {
