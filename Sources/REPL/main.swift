@@ -12,8 +12,15 @@ repeat {
         continue
     }
 
-    var lexer = Lexer(line)
-    while case let token = lexer.nextToken(), token.type != .EOF {
-        print(token)
+    var parser = Parser(lexer: .init(line))
+
+    let program = parser.parseProgram()
+    if !parser.errors.isEmpty {
+        for msg in parser.errors {
+            print("\t", msg)
+        }
+        continue
     }
+
+    print(program)
 } while true
