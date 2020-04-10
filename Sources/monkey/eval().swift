@@ -1,4 +1,4 @@
-func eval(_ node: Node) -> Object? {
+public func eval(_ node: Node) -> Object? {
     switch node {
     case let node as Program:
         return evalStatements(node.statements)

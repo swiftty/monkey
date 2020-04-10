@@ -22,5 +22,10 @@ repeat {
         continue
     }
 
-    print(program)
+    guard let evaluated = eval(program) else {
+        continue
+    }
+
+    print(evaluated.inspect())
+
 } while true
