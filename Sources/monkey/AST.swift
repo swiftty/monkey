@@ -8,15 +8,15 @@ public protocol Statement: Node {}
 public protocol Expression: Node {}
 
 
-public struct Program: CustomStringConvertible {
+public struct Program: Node {
     var statements: [Statement]
 
     public var description: String {
         statements.map(\.description).joined()
     }
 
-    public func tokenLiteral() -> String? {
-        statements.first?.tokenLiteral()
+    public func tokenLiteral() -> String {
+        statements.first?.tokenLiteral() ?? "<empty>"
     }
 }
 
