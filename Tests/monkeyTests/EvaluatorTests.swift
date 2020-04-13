@@ -13,6 +13,18 @@ final class EvaluatorTests: XCTestCase {
             try checkIntegerObject(evaluated, expected: t.expected)
         }
     }
+
+    func testEvalBooleanExpression() throws {
+        let tests: [(input: String, expected: Bool)] = [
+            ("true", true),
+            ("false", false)
+        ]
+
+        for t in tests {
+            let evaluated = _eval(t.input)
+            try checkBooleanObject(evaluated, expected: t.expected)
+        }
+    }
 }
 
 extension EvaluatorTests {
@@ -25,6 +37,11 @@ extension EvaluatorTests {
 
     private func checkIntegerObject(_ obj: Object?, expected: Int64) throws {
         let result = try XCTUnwrap(obj as? Integer)
+        XCTAssertEqual(result.value, expected)
+    }
+
+    private func checkBooleanObject(_ obj: Object?, expected: Bool) throws {
+        let result = try XCTUnwrap(obj as? Boolean)
         XCTAssertEqual(result.value, expected)
     }
 }

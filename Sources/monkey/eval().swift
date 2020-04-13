@@ -1,3 +1,14 @@
+private enum Const {
+    static let TRUE = Boolean(value: true)
+    static let FALSE = Boolean(value: false)
+}
+
+private extension Boolean {
+    init(_ flag: Bool) {
+        self = flag ? Const.TRUE : Const.FALSE
+    }
+}
+
 public func eval(_ node: Node) -> Object? {
     switch node {
     case let node as Program:
@@ -8,6 +19,9 @@ public func eval(_ node: Node) -> Object? {
 
     case let node as IntegerLiteral:
         return Integer(value: node.value)
+
+    case let node as BooleanLiteral:
+        return Boolean(node.value)
 
     default:
         return nil
