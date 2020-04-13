@@ -1,4 +1,5 @@
 private enum Const {
+    static let NULL = Null()
     static let TRUE = Boolean(value: true)
     static let FALSE = Boolean(value: false)
 }
@@ -6,6 +7,10 @@ private enum Const {
 private extension Boolean {
     init(_ flag: Bool) {
         self = flag ? Const.TRUE : Const.FALSE
+    }
+
+    func toggled() -> Boolean {
+        value ? Const.FALSE : Const.TRUE
     }
 }
 
@@ -23,6 +28,9 @@ public func eval(_ node: Node) -> Object? {
     case let node as BooleanLiteral:
         return Boolean(node.value)
 
+    case let node as PrefixExpression:
+        return evalPrefixExpression(node.operator, eval(node.right))
+
     default:
         return nil
     }
@@ -35,4 +43,35 @@ private func evalStatements(_ statements: [Statement]) -> Object? {
         result = eval(stmt)
     }
     return result
+}
+
+private func evalPrefixExpression(_ operator: String, _ right: Object?) -> Object? {
+    switch `operator` {
+    case "!":
+        return evalBangOperatorExpression(right)
+
+    case "-":
+        return evalMinusPrefixOperatorExpression(right)
+
+    default:
+        return Const.NULL
+    }
+}
+
+private func evalBangOperatorExpression(_ right: Object?) -> Object {
+    switch right {
+    case let bool as Boolean:
+        return bool.toggled()
+
+    case is Null:
+        return Const.TRUE
+
+    default:
+        return Const.FALSE
+    }
+}
+
+private func evalMinusPrefixOperatorExpression(_ right: Object?) -> Object {
+    guard let right = right as? Integer else { return Const.NULL }
+    return Integer(value: -right.value)
 }

@@ -2,27 +2,37 @@ import XCTest
 @testable import monkey
 
 final class EvaluatorTests: XCTestCase {
-    func testEvalIntegerExpression() throws {
-        let tests: [(input: String, expected: Int64)] = [
-            ("5", 5),
-            ("10", 10)
-        ]
-
-        for t in tests {
-            let evaluated = _eval(t.input)
-            try checkIntegerObject(evaluated, expected: t.expected)
-        }
-    }
-
-    func testEvalBooleanExpression() throws {
-        let tests: [(input: String, expected: Bool)] = [
+    func testEvalExpression() throws {
+        let tests: [(input: String, expected: Any?)] = [
+            ("5", 5 as Int64),
+            ("10", 10 as Int64),
             ("true", true),
-            ("false", false)
+            ("false", false),
+            ("!true", false),
+            ("!false", true),
+            ("!5", false),
+            ("!!true", true),
+            ("!!false", false),
+            ("!!5", true),
+            ("-5", -5 as Int64),
+            ("-10", -10 as Int64)
         ]
 
         for t in tests {
             let evaluated = _eval(t.input)
-            try checkBooleanObject(evaluated, expected: t.expected)
+            switch t.expected {
+            case let expected as Int64:
+                try checkIntegerObject(evaluated, expected: expected)
+
+            case let expected as Bool:
+                try checkBooleanObject(evaluated, expected: expected)
+
+            case nil:
+                XCTAssert(evaluated is Null)
+
+            default:
+                XCTFail()
+            }
         }
     }
 }
@@ -35,13 +45,15 @@ extension EvaluatorTests {
         return eval(program)
     }
 
-    private func checkIntegerObject(_ obj: Object?, expected: Int64) throws {
-        let result = try XCTUnwrap(obj as? Integer)
-        XCTAssertEqual(result.value, expected)
+    private func checkIntegerObject(_ obj: Object?, expected: Int64,
+                                    file: StaticString = #file, line: UInt = #line) throws {
+        let result = try XCTUnwrap(obj as? Integer, file: file, line: line)
+        XCTAssertEqual(result.value, expected, file: file, line: line)
     }
 
-    private func checkBooleanObject(_ obj: Object?, expected: Bool) throws {
-        let result = try XCTUnwrap(obj as? Boolean)
-        XCTAssertEqual(result.value, expected)
+    private func checkBooleanObject(_ obj: Object?, expected: Bool,
+                                    file: StaticString = #file, line: UInt = #line) throws {
+        let result = try XCTUnwrap(obj as? Boolean, file: file, line: line)
+        XCTAssertEqual(result.value, expected, file: file, line: line)
     }
 }
