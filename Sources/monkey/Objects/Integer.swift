@@ -1,5 +1,6 @@
 public struct Integer: Object {
-    public var value: Int64
+    public typealias Value = Int64
+    public var value: Value
 
     public var type: ObjectType { .INTEGER }
     public func inspect() -> String { "\(value)" }

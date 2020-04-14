@@ -31,6 +31,9 @@ public func eval(_ node: Node) -> Object? {
     case let node as PrefixExpression:
         return evalPrefixExpression(node.operator, eval(node.right))
 
+    case let node as InfixExpression:
+        return evalInfixExpression(node.operator, eval(node.left), eval(node.right))
+
     default:
         return nil
     }
@@ -74,4 +77,33 @@ private func evalBangOperatorExpression(_ right: Object?) -> Object {
 private func evalMinusPrefixOperatorExpression(_ right: Object?) -> Object {
     guard let right = right as? Integer else { return Const.NULL }
     return Integer(value: -right.value)
+}
+
+private func evalInfixExpression(_ operator: String, _ left: Object?, _ right: Object?) -> Object {
+    switch (left, right) {
+    case (let left as Integer, let right as Integer):
+        return evalIntegerInfixExpression(`operator`, left, right)
+
+    default:
+        return Const.NULL
+    }
+}
+
+private func evalIntegerInfixExpression(_ operator: String, _ left: Integer, _ right: Integer) -> Object {
+    switch  `operator` {
+    case "+":
+        return Integer(value: left.value + right.value)
+
+    case "-":
+        return Integer(value: left.value - right.value)
+
+    case "*":
+        return Integer(value: left.value * right.value)
+
+    case "/":
+        return Integer(value: left.value / right.value)
+
+    default:
+        return Const.NULL
+    }
 }
