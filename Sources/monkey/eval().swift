@@ -84,6 +84,12 @@ private func evalInfixExpression(_ operator: String, _ left: Object?, _ right: O
     case (let left as Integer, let right as Integer):
         return evalIntegerInfixExpression(`operator`, left, right)
 
+    case (let left as Object, let right as Object) where `operator` == "==":
+        return Boolean.from(native: left === right)
+
+    case (let left as Object, let right as Object) where `operator` == "!=":
+        return Boolean.from(native: left !== right)
+
     default:
         return Const.NULL
     }
@@ -102,6 +108,18 @@ private func evalIntegerInfixExpression(_ operator: String, _ left: Integer, _ r
 
     case "/":
         return Integer(value: left.value / right.value)
+
+    case "<":
+        return Boolean.from(native: left.value < right.value)
+
+    case ">":
+        return Boolean.from(native: left.value > right.value)
+
+    case "==":
+        return Boolean.from(native: left.value == right.value)
+
+    case "!=":
+        return Boolean.from(native: left.value != right.value)
 
     default:
         return Const.NULL
