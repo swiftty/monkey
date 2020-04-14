@@ -5,8 +5,8 @@ private enum Const {
 }
 
 private extension Boolean {
-    init(_ flag: Bool) {
-        self = flag ? Const.TRUE : Const.FALSE
+    static func from(native flag: Bool) -> Boolean {
+        flag ? Const.TRUE : Const.FALSE
     }
 
     func toggled() -> Boolean {
@@ -26,7 +26,7 @@ public func eval(_ node: Node) -> Object? {
         return Integer(value: node.value)
 
     case let node as BooleanLiteral:
-        return Boolean(node.value)
+        return Boolean.from(native: node.value)
 
     case let node as PrefixExpression:
         return evalPrefixExpression(node.operator, eval(node.right))

@@ -1,4 +1,4 @@
-public protocol Object {
+public protocol Object: AnyObject {
     var type: ObjectType { get }
     func inspect() -> String
 }
