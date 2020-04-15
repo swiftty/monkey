@@ -34,6 +34,12 @@ public func eval(_ node: Node) -> Object? {
     case let node as InfixExpression:
         return evalInfixExpression(node.operator, eval(node.left), eval(node.right))
 
+    case let node as BlockStatement:
+        return evalStatements(node.statements)
+
+    case let node as IfExpression:
+        return evalIfExpression(node)
+
     default:
         return nil
     }
@@ -84,10 +90,10 @@ private func evalInfixExpression(_ operator: String, _ left: Object?, _ right: O
     case (let left as Integer, let right as Integer):
         return evalIntegerInfixExpression(`operator`, left, right)
 
-    case (let left as Object, let right as Object) where `operator` == "==":
+    case (let left?, let right?) where `operator` == "==":
         return Boolean.from(native: left === right)
 
-    case (let left as Object, let right as Object) where `operator` == "!=":
+    case (let left?, let right?) where `operator` == "!=":
         return Boolean.from(native: left !== right)
 
     default:
@@ -123,5 +129,25 @@ private func evalIntegerInfixExpression(_ operator: String, _ left: Integer, _ r
 
     default:
         return Const.NULL
+    }
+}
+
+private func evalIfExpression(_ ie: IfExpression) -> Object? {
+    if isTruthy(eval(ie.condition)) {
+        return eval(ie.consequence)
+    } else if let alt = ie.alternative {
+        return eval(alt)
+    } else {
+        return Const.NULL
+    }
+}
+
+private func isTruthy(_ obj: Object?) -> Bool {
+    switch obj {
+    case nil: return false
+    case Const.NULL: return false
+    case Const.FALSE: return false
+    case Const.TRUE: return true
+    default: return true
     }
 }

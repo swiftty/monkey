@@ -16,3 +16,7 @@ extension ObjectType {
     public static let BOOLEAN = ObjectType(rawValue: "BOOLEAN")
     public static let NULL = ObjectType(rawValue: "NULL")
 }
+
+func ~= (_ lhs: Object, _ rhs: Object?) -> Bool {
+    lhs === rhs
+}
