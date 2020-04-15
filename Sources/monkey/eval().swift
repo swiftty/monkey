@@ -14,10 +14,10 @@ private extension Boolean {
     }
 }
 
-public func eval(_ node: Node) -> Object? {
+public func eval(_ node: Node?) -> Object? {
     switch node {
     case let node as Program:
-        return evalStatements(node.statements)
+        return evalProgram(node)
 
     case let node as ExpressionStatement:
         return eval(node.expression)
@@ -35,10 +35,13 @@ public func eval(_ node: Node) -> Object? {
         return evalInfixExpression(node.operator, eval(node.left), eval(node.right))
 
     case let node as BlockStatement:
-        return evalStatements(node.statements)
+        return evalBlockStatement(node)
 
     case let node as IfExpression:
         return evalIfExpression(node)
+
+    case let node as ReturnStatement:
+        return ReturnValue(value: eval(node.returnValue) ?? Const.NULL)
 
     default:
         return nil
@@ -46,10 +49,38 @@ public func eval(_ node: Node) -> Object? {
 }
 
 // MARK: - private -
+private func evalProgram(_ program: Program) -> Object? {
+    var result: Object?
+    for stmt in program.statements {
+        result = eval(stmt)
+
+        if let r = result as? ReturnValue {
+            return r.value
+        }
+    }
+    return result
+}
+
 private func evalStatements(_ statements: [Statement]) -> Object? {
     var result: Object?
     for stmt in statements {
         result = eval(stmt)
+
+        if let r = result as? ReturnValue {
+            return r.value
+        }
+    }
+    return result
+}
+
+private func evalBlockStatement(_ block: BlockStatement) -> Object? {
+    var result: Object?
+    for stmt in block.statements {
+        result = eval(stmt)
+
+        if result is ReturnValue {
+            return result
+        }
     }
     return result
 }

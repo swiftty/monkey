@@ -86,8 +86,30 @@ final class EvaluatorTests: XCTestCase {
                 XCTAssert(evaluated is Null, file: t.file, line: t.line)
 
             default:
-                XCTFail()
+                XCTFail(file: t.file, line: t.line)
             }
+        }
+    }
+
+    func testReturnStatements() {
+        let tests: [ExpressionInput<Any?>] = [
+            .init("return 10;", 10 as Int64),
+            .init("return 10; 9;", 10 as Int64),
+            .init("return 2 * 5; 8;", 10 as Int64),
+            .init("9; return 2 * 10; 9;", 20 as Int64),
+            .init("if (10 > 1) { if (10 > 1) { return 10; } return 1; }", 10 as Int64)
+        ]
+
+        for t in tests {
+            let evaluated = _eval(t.input)
+            switch t.expected {
+            case let expected as Int64:
+                checkIntegerObject(evaluated, expected: expected, file: t.file, line: t.line)
+
+            default:
+                XCTFail(file: t.file, line: t.line)
+            }
+
         }
     }
 }
