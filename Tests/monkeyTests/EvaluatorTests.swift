@@ -112,6 +112,35 @@ final class EvaluatorTests: XCTestCase {
 
         }
     }
+
+    func testErrorHandling() {
+        let tests: [ExpressionInput<String>] = [
+            .init("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
+            .init("5 + true; 5", "type mismatch: INTEGER + BOOLEAN"),
+            .init("-true", "unknown operator: -BOOLEAN"),
+            .init("true + false;", "unknown operator: BOOLEAN + BOOLEAN"),
+            .init("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"),
+            .init("if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"),
+            .init(
+                """
+                if ( 10 > 1 ) {
+                    if (10 > 1) {
+                        return true + false;
+                    }
+                    return 1;
+                }
+                """, "unknown operator: BOOLEAN + BOOLEAN")
+        ]
+
+        for t in tests {
+            let raw = _eval(t.input)
+            guard let evaluated = raw as? ERROR else {
+                XCTFail("no error object returned. got=\(raw?.type.rawValue ?? "<nil>")", file: t.file, line: t.line)
+                continue
+            }
+            XCTAssertEqual(evaluated.message, t.expected)
+        }
+    }
 }
 
 extension EvaluatorTests {

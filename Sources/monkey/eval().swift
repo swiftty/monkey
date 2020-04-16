@@ -29,10 +29,22 @@ public func eval(_ node: Node?) -> Object? {
         return Boolean.from(native: node.value)
 
     case let node as PrefixExpression:
-        return evalPrefixExpression(node.operator, eval(node.right))
+        let right = eval(node.right)
+        if isError(right) {
+            return right
+        }
+        return evalPrefixExpression(node.operator, right)
 
     case let node as InfixExpression:
-        return evalInfixExpression(node.operator, eval(node.left), eval(node.right))
+        let left = eval(node.left)
+        if isError(left) {
+            return left
+        }
+        let right = eval(node.right)
+        if isError(right) {
+            return right
+        }
+        return evalInfixExpression(node.operator, left, right)
 
     case let node as BlockStatement:
         return evalBlockStatement(node)
@@ -41,7 +53,11 @@ public func eval(_ node: Node?) -> Object? {
         return evalIfExpression(node)
 
     case let node as ReturnStatement:
-        return ReturnValue(value: eval(node.returnValue) ?? Const.NULL)
+        let val = eval(node.returnValue) ?? Const.NULL
+        if isError(val) {
+            return val
+        }
+        return ReturnValue(value: val)
 
     default:
         return nil
@@ -54,8 +70,15 @@ private func evalProgram(_ program: Program) -> Object? {
     for stmt in program.statements {
         result = eval(stmt)
 
-        if let r = result as? ReturnValue {
-            return r.value
+        switch result {
+        case let result as ReturnValue:
+            return result.value
+
+        case is ERROR:
+            return result
+
+        default:
+            break
         }
     }
     return result
@@ -78,8 +101,12 @@ private func evalBlockStatement(_ block: BlockStatement) -> Object? {
     for stmt in block.statements {
         result = eval(stmt)
 
-        if result is ReturnValue {
+        switch result {
+        case is ReturnValue, is ERROR:
             return result
+
+        default:
+            break
         }
     }
     return result
@@ -94,7 +121,7 @@ private func evalPrefixExpression(_ operator: String, _ right: Object?) -> Objec
         return evalMinusPrefixOperatorExpression(right)
 
     default:
-        return Const.NULL
+        return ERROR(message: "unknown operator: \(`operator`)\((right ?? Const.NULL).type.rawValue)")
     }
 }
 
@@ -112,8 +139,10 @@ private func evalBangOperatorExpression(_ right: Object?) -> Object {
 }
 
 private func evalMinusPrefixOperatorExpression(_ right: Object?) -> Object {
-    guard let right = right as? Integer else { return Const.NULL }
-    return Integer(value: -right.value)
+    guard let r = right as? Integer else {
+        return ERROR(message: "unknown operator: -\((right ?? Const.NULL).type)")
+    }
+    return Integer(value: -r.value)
 }
 
 private func evalInfixExpression(_ operator: String, _ left: Object?, _ right: Object?) -> Object {
@@ -127,8 +156,13 @@ private func evalInfixExpression(_ operator: String, _ left: Object?, _ right: O
     case (let left?, let right?) where `operator` == "!=":
         return Boolean.from(native: left !== right)
 
+    case (let left?, let right?) where left.type != right.type:
+        return ERROR(message: "type mismatch: \(left.type) \(`operator`) \(right.type)")
+
     default:
-        return Const.NULL
+        let left = left ?? Const.NULL
+        let right = right ?? Const.NULL
+        return ERROR(message: "unknown operator: \(left.type) \(`operator`) \(right.type)")
     }
 }
 
@@ -164,7 +198,11 @@ private func evalIntegerInfixExpression(_ operator: String, _ left: Integer, _ r
 }
 
 private func evalIfExpression(_ ie: IfExpression) -> Object? {
-    if isTruthy(eval(ie.condition)) {
+    let condition = eval(ie.condition)
+    if isError(condition) {
+        return condition
+    }
+    if isTruthy(condition) {
         return eval(ie.consequence)
     } else if let alt = ie.alternative {
         return eval(alt)
@@ -181,4 +219,8 @@ private func isTruthy(_ obj: Object?) -> Bool {
     case Const.TRUE: return true
     default: return true
     }
+}
+
+private func isError(_ obj: Object?) -> Bool {
+    obj is ERROR
 }
