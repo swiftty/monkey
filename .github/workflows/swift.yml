@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  cache=version: fc4c99d
+
 jobs:
   macos:
     runs-on: macos-latest
@@ -16,8 +19,10 @@ jobs:
       uses: actions/cache@v1.1.2
       with:
         path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}-${{ env.cache-version }}
         restore-keys: |
+          ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}-${{ env.cache-version }}
+          ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}-
           ${{ runner.os }}-spm-
     - name: Run tests
       run: swift test -v
@@ -36,8 +41,10 @@ jobs:
       uses: actions/cache@v1.1.2
       with:
         path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}-${{ env.cache-version }}
         restore-keys: |
+          ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}-${{ env.cache-version }}
+          ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}-
           ${{ runner.os }}-spm-
     - name: Run tests
       run: swift test --enable-test-discovery -v
