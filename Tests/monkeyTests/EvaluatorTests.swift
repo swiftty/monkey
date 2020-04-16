@@ -129,7 +129,8 @@ final class EvaluatorTests: XCTestCase {
                     }
                     return 1;
                 }
-                """, "unknown operator: BOOLEAN + BOOLEAN")
+                """, "unknown operator: BOOLEAN + BOOLEAN"),
+            .init("foobar", "identifier not found: foobar")
         ]
 
         for t in tests {
@@ -141,14 +142,28 @@ final class EvaluatorTests: XCTestCase {
             XCTAssertEqual(evaluated.message, t.expected)
         }
     }
+
+    func testLetStatements() {
+        let tests: [ExpressionInput<Int64>] = [
+            .init("let a = t; a;", 5),
+            .init("let a = 5 * 5; a;", 25),
+            .init("let a = 5; let b = a; b;", 5),
+            .init("let a = 5; let b = a; let c = a + b + 5; c;", 15)
+        ]
+
+        for t in tests {
+            checkIntegerObject(_eval(t.input), expected: t.expected, file: t.file, line: t.line)
+        }
+    }
 }
 
 extension EvaluatorTests {
     private func _eval(_ input: String) -> Object? {
         var parser = Parser(lexer: .init(input))
         let program = parser.parseProgram()
+        var env = Environment()
 
-        return eval(program)
+        return eval(program, env: &env)
     }
 
     private func checkIntegerObject(_ obj: Object?, expected: Int64,

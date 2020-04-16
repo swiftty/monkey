@@ -13,6 +13,7 @@ repeat {
     }
 
     var parser = Parser(lexer: .init(line))
+    var env = Environment()
 
     let program = parser.parseProgram()
     if !parser.errors.isEmpty {
@@ -22,7 +23,7 @@ repeat {
         continue
     }
 
-    guard let evaluated = eval(program) else {
+    guard let evaluated = eval(program, env: &env) else {
         continue
     }
 

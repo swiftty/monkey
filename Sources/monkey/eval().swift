@@ -14,13 +14,13 @@ private extension Boolean {
     }
 }
 
-public func eval(_ node: Node?) -> Object? {
+public func eval(_ node: Node?, env: inout Environment) -> Object? {
     switch node {
     case let node as Program:
-        return evalProgram(node)
+        return evalProgram(node, env: &env)
 
     case let node as ExpressionStatement:
-        return eval(node.expression)
+        return eval(node.expression, env: &env)
 
     case let node as IntegerLiteral:
         return Integer(value: node.value)
@@ -29,31 +29,31 @@ public func eval(_ node: Node?) -> Object? {
         return Boolean.from(native: node.value)
 
     case let node as PrefixExpression:
-        let right = eval(node.right)
+        let right = eval(node.right, env: &env)
         if isError(right) {
             return right
         }
         return evalPrefixExpression(node.operator, right)
 
     case let node as InfixExpression:
-        let left = eval(node.left)
+        let left = eval(node.left, env: &env)
         if isError(left) {
             return left
         }
-        let right = eval(node.right)
+        let right = eval(node.right, env: &env)
         if isError(right) {
             return right
         }
         return evalInfixExpression(node.operator, left, right)
 
     case let node as BlockStatement:
-        return evalBlockStatement(node)
+        return evalBlockStatement(node, env: &env)
 
     case let node as IfExpression:
-        return evalIfExpression(node)
+        return evalIfExpression(node, env: &env)
 
     case let node as ReturnStatement:
-        let val = eval(node.returnValue) ?? Const.NULL
+        let val = eval(node.returnValue, env: &env) ?? Const.NULL
         if isError(val) {
             return val
         }
@@ -65,10 +65,10 @@ public func eval(_ node: Node?) -> Object? {
 }
 
 // MARK: - private -
-private func evalProgram(_ program: Program) -> Object? {
+private func evalProgram(_ program: Program, env: inout Environment) -> Object? {
     var result: Object?
     for stmt in program.statements {
-        result = eval(stmt)
+        result = eval(stmt, env: &env)
 
         switch result {
         case let result as ReturnValue:
@@ -84,10 +84,10 @@ private func evalProgram(_ program: Program) -> Object? {
     return result
 }
 
-private func evalStatements(_ statements: [Statement]) -> Object? {
+private func evalStatements(_ statements: [Statement], env: inout Environment) -> Object? {
     var result: Object?
     for stmt in statements {
-        result = eval(stmt)
+        result = eval(stmt, env: &env)
 
         if let r = result as? ReturnValue {
             return r.value
@@ -96,10 +96,10 @@ private func evalStatements(_ statements: [Statement]) -> Object? {
     return result
 }
 
-private func evalBlockStatement(_ block: BlockStatement) -> Object? {
+private func evalBlockStatement(_ block: BlockStatement, env: inout Environment) -> Object? {
     var result: Object?
     for stmt in block.statements {
-        result = eval(stmt)
+        result = eval(stmt, env: &env)
 
         switch result {
         case is ReturnValue, is ERROR:
@@ -197,15 +197,15 @@ private func evalIntegerInfixExpression(_ operator: String, _ left: Integer, _ r
     }
 }
 
-private func evalIfExpression(_ ie: IfExpression) -> Object? {
-    let condition = eval(ie.condition)
+private func evalIfExpression(_ ie: IfExpression, env: inout Environment) -> Object? {
+    let condition = eval(ie.condition, env: &env)
     if isError(condition) {
         return condition
     }
     if isTruthy(condition) {
-        return eval(ie.consequence)
+        return eval(ie.consequence, env: &env)
     } else if let alt = ie.alternative {
-        return eval(alt)
+        return eval(alt, env: &env)
     } else {
         return Const.NULL
     }
