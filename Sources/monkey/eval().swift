@@ -59,6 +59,17 @@ public func eval(_ node: Node?, env: inout Environment) -> Object? {
         }
         return ReturnValue(value: val)
 
+    case let node as LetStatement:
+        let val = eval(node.value, env: &env)
+        if isError(val) {
+            return val
+        }
+        env[node.name.value] = val
+        return nil
+
+    case let node as Identifier:
+        return evalIdentifier(node, env: &env)
+
     default:
         return nil
     }
@@ -209,6 +220,13 @@ private func evalIfExpression(_ ie: IfExpression, env: inout Environment) -> Obj
     } else {
         return Const.NULL
     }
+}
+
+private func evalIdentifier(_ node: Identifier, env: inout Environment) -> Object? {
+    guard let val = env[node.value] else {
+        return ERROR(message: "identifier not found: \(node.value)")
+    }
+    return val
 }
 
 private func isTruthy(_ obj: Object?) -> Bool {

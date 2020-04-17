@@ -145,7 +145,7 @@ final class EvaluatorTests: XCTestCase {
 
     func testLetStatements() {
         let tests: [ExpressionInput<Int64>] = [
-            .init("let a = t; a;", 5),
+            .init("let a = 5; a;", 5),
             .init("let a = 5 * 5; a;", 25),
             .init("let a = 5; let b = a; b;", 5),
             .init("let a = 5; let b = a; let c = a + b + 5; c;", 15)
