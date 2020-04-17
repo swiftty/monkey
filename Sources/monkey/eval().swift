@@ -70,6 +70,20 @@ public func eval(_ node: Node?, env: inout Environment) -> Object? {
     case let node as Identifier:
         return evalIdentifier(node, env: &env)
 
+    case let node as FunctionLiteral:
+        return Function(parameters: node.parameters, body: node.body, env: env)
+
+    case let node as CallExpression:
+        let function = eval(node.function, env: &env)
+        if isError(function) {
+            return function
+        }
+        let args = evalExpressions(node.arguments, env: &env)
+        if isError(args.first ?? nil) {
+            return args.first ?? nil
+        }
+        return applyFunction(function, arguments: args)
+
     default:
         return nil
     }
@@ -227,6 +241,44 @@ private func evalIdentifier(_ node: Identifier, env: inout Environment) -> Objec
         return ERROR(message: "identifier not found: \(node.value)")
     }
     return val
+}
+
+private func evalExpressions(_ expressions: [Expression], env: inout Environment) -> [Object?] {
+    var result: [Object?] = []
+    for e in expressions {
+        let evaluated = eval(e, env: &env)
+        if isError(evaluated) {
+            return [evaluated]
+        }
+        result.append(evaluated)
+    }
+    return result
+}
+
+private func applyFunction(_ fn: Object?, arguments args: [Object?]) -> Object? {
+    guard let function = fn as? Function else {
+        return ERROR(message: "not a function: \((fn ?? Const.NULL).type)")
+    }
+    var env = extendFunctionEnvironment(function, arguments: args)
+    let evaluated = eval(function.body, env: &env)
+    return unwrapReturnValue(evaluated)
+}
+
+private func extendFunctionEnvironment(_ fn: Function, arguments args: [Object?]) -> Environment {
+    var env = Environment(fn.env)
+
+    for (i, param) in fn.parameters.enumerated() {
+        env[param.value] = args[i]
+    }
+
+    return env
+}
+
+private func unwrapReturnValue(_ obj: Object?) -> Object? {
+    if let returnValue = obj as? ReturnValue {
+        return returnValue.value
+    }
+    return obj
 }
 
 private func isTruthy(_ obj: Object?) -> Bool {

@@ -155,6 +155,21 @@ final class EvaluatorTests: XCTestCase {
             checkIntegerObject(_eval(t.input), expected: t.expected, file: t.file, line: t.line)
         }
     }
+
+    func testFunctionApplication() {
+        let tests: [ExpressionInput<Int64>] = [
+            .init("let identity = fn(x) { x; }; identity(5);", 5),
+            .init("let identity = fn(x) { return x; }; identity(5);", 5),
+            .init("let double = fn(x) { x * 2; }; double(5);", 10),
+            .init("let add = fn(x, y) { x + y; }; add(5, 5);", 10),
+            .init("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+            .init("fn(x) { x; }(5);", 5)
+        ]
+
+        for t in tests {
+            checkIntegerObject(_eval(t.input), expected: t.expected, file: t.file, line: t.line)
+        }
+    }
 }
 
 extension EvaluatorTests {
