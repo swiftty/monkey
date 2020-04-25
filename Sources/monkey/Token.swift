@@ -12,6 +12,12 @@ extension TokenType: CustomStringConvertible {
     public var description: String { rawValue }
 }
 
+extension TokenType: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self.init(rawValue: value)
+    }
+}
+
 public struct Token {
     public var type: TokenType
     public var literal: String
@@ -40,6 +46,7 @@ extension TokenType {
 
     public static let IDENT = TokenType(rawValue: "IDENT")
     public static let INT = TokenType(rawValue: "INT")
+    public static let STRING: TokenType = "STRING"
 
     public static let ASSIGN = TokenType(rawValue: "=")
     public static let PLUS = TokenType(rawValue: "+")

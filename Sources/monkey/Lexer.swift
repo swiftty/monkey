@@ -75,6 +75,9 @@ public struct Lexer {
         case let ch? where ch.isDigit:
             return Token(type: .INT, literal: readNumber())
 
+        case "\"":
+            return Token(type: .STRING, literal: readString())
+            
         case let ch?:
             token = Token(type: .ILLEGAL, literal: ch)
         }
@@ -105,6 +108,12 @@ public struct Lexer {
 
     private mutating func readNumber() -> String {
         readLiteral(where: \.isDigit)
+    }
+
+    private mutating func readString() -> String {
+        readChar()
+        defer { readChar() }
+        return readLiteral(where: { $0 != "\"" })
     }
 
     private mutating func readLiteral(where cond: (Character) -> Bool) -> String {
