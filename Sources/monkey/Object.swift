@@ -15,6 +15,7 @@ public struct ObjectType: RawRepresentable, Equatable, Hashable, CustomStringCon
 extension ObjectType {
     public static let INTEGER = ObjectType(rawValue: "INTEGER")
     public static let BOOLEAN = ObjectType(rawValue: "BOOLEAN")
+    public static let STRING = ObjectType(rawValue: "STRING")
     public static let NULL = ObjectType(rawValue: "NULL")
     public static let RETURN_VALUE = ObjectType(rawValue: "RETURN_VALUE")
     public static let ERROR = ObjectType(rawValue: "ERROR")

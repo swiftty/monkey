@@ -6,6 +6,8 @@ private let PROMPT = ">> "
 print("This is the Monky programming language!")
 print("Feel free to type in commands")
 
+var env = Environment()
+
 repeat {
     print(PROMPT, terminator: "")
     guard let line = readLine() else {
@@ -13,7 +15,6 @@ repeat {
     }
 
     var parser = Parser(lexer: .init(line))
-    var env = Environment()
 
     let program = parser.parseProgram()
     if !parser.errors.isEmpty {

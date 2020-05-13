@@ -28,6 +28,9 @@ public func eval(_ node: Node?, env: inout Environment) -> Object? {
     case let node as BooleanLiteral:
         return Boolean.from(native: node.value)
 
+    case let node as StringLiteral:
+        return String_(value: node.value)
+
     case let node as PrefixExpression:
         let right = eval(node.right, env: &env)
         if isError(right) {
@@ -175,6 +178,9 @@ private func evalInfixExpression(_ operator: String, _ left: Object?, _ right: O
     case (let left as Integer, let right as Integer):
         return evalIntegerInfixExpression(`operator`, left, right)
 
+    case (let left as String_, let right as String_):
+        return evalStringInfixExpression(`operator`, left, right)
+
     case (let left?, let right?) where `operator` == "==":
         return Boolean.from(native: left === right)
 
@@ -219,6 +225,22 @@ private func evalIntegerInfixExpression(_ operator: String, _ left: Integer, _ r
 
     default:
         return Const.NULL
+    }
+}
+
+private func evalStringInfixExpression(_ operator: String, _ left: String_, _ right: String_) -> Object {
+    switch  `operator` {
+    case "+":
+        return String_(value: left.value + right.value)
+
+    case "==":
+        return Boolean.from(native: left.value == right.value)
+
+    case "!=":
+        return Boolean.from(native: left.value != right.value)
+
+    default:
+        return ERROR(message: "unknown operator: \(left.type) \(`operator`) \(right.type)")
     }
 }
 
