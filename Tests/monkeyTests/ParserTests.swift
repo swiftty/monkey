@@ -63,6 +63,26 @@ final class ParserTests: XCTestCase {
         try checkLiteralExpresseion(stmt.expression, expected: 5)
     }
 
+    func testStringLiteralExpression() throws {
+        let input = """
+        "hello world";
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+        try checkLiteralExpresseion(stmt.expression, expected: "hello world")
+    }
+
     func testFunctionLiteralExpression() throws {
         let input = """
         fn(x, y) { x + y; }
@@ -353,17 +373,26 @@ extension ParserTests {
             XCTAssertEqual(integ.value, value, file: file, line: line)
             XCTAssertEqual(integ.tokenLiteral(), "\(value)", file: file, line: line)
         }
-        switch expected {
-        case let v as Bool:
+        func checkStringLiteral(to value: String) throws {
+            let string = try XCTUnwrap(exp as? StringLiteral, file: file, line: line)
+
+            XCTAssertEqual(string.value, value, file: file, line: line)
+            XCTAssertEqual(string.tokenLiteral(), value, file: file, line: line)
+        }
+        switch (expected, exp) {
+        case (let v as Bool, _):
             try checkBooleanLiteral(to: v)
 
-        case let v as Int:
+        case (let v as Int, _):
             try checkIntegerLiteral(to: Int64(v))
 
-        case let v as Int64:
+        case (let v as Int64, _):
             try checkIntegerLiteral(to: v)
 
-        case let v as String:
+        case (let v as String, is StringLiteral):
+            try checkStringLiteral(to: v)
+
+        case (let v as String, is Identifier):
             try checkIdentifier(to: v)
 
         default:

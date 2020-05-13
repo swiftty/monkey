@@ -48,6 +48,7 @@ public struct Parser {
         registerPrefix(parseBooleanLiteral(), to: .TRUE)
         registerPrefix(parseBooleanLiteral(), to: .FALSE)
         registerPrefix(parseIntegerLiteral(), to: .INT)
+        registerPrefix(parseStringLiteral(), to: .STRING)
         registerPrefix(parsePrefixExpression(), to: .BANG)
         registerPrefix(parsePrefixExpression(), to: .MINUS)
         registerPrefix(parseGroupedExpression(), to: .LPAREN)
@@ -108,6 +109,12 @@ public struct Parser {
                 return nil
             }
             return IntegerLiteral(token: $0.currToken, value: value)
+        }
+    }
+
+    private func parseStringLiteral() -> PrefixParser {
+        return {
+            StringLiteral(token: $0.currToken, value: $0.currToken.literal)
         }
     }
 
