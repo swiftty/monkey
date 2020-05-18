@@ -170,6 +170,30 @@ final class EvaluatorTests: XCTestCase {
             checkIntegerObject(_eval(t.input), expected: t.expected, file: t.file, line: t.line)
         }
     }
+
+    func testBuiltinFunctions() {
+        let tests: [ExpressionInput<Any>] = [
+            .init(#"len("")"#, 0),
+            .init(#"len("four")"#, 4),
+            .init(#"len("hello world")"#, 11),
+            .init(#"len(1)"#, "argument to `len` not supported, got INTEGER"),
+            .init(#"len("one", "two")"#, "wrong number of arguments. got=2, want=1")
+        ]
+
+        for t in tests {
+            switch t.expected {
+            case let expected as Int:
+                checkIntegerObject(_eval(t.input), expected: Int64(expected), file: t.file, line: t.line)
+
+            case let expected as String:
+                let evaluated = _eval(t.input) as? ERROR
+                XCTAssertEqual(evaluated?.message, expected, file: t.file, line: t.line)
+
+            default:
+                XCTFail()
+            }
+        }
+    }
 }
 
 extension EvaluatorTests {

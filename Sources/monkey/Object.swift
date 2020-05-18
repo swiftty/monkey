@@ -20,6 +20,7 @@ extension ObjectType {
     public static let RETURN_VALUE = ObjectType(rawValue: "RETURN_VALUE")
     public static let ERROR = ObjectType(rawValue: "ERROR")
     public static let FUNCTION = ObjectType(rawValue: "FUNCTION")
+    public static let BUILTIN = ObjectType(rawValue: "BUILTIN")
 }
 
 func ~= (_ lhs: Object, _ rhs: Object?) -> Bool {

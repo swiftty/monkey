@@ -14,6 +14,18 @@ private extension Boolean {
     }
 }
 
+private let builtins = [
+    "len": Builtin { args in
+        guard case let arguments = args.compactMap({ $0 }), arguments.count == 1 else {
+            return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
+        }
+        guard let arg = arguments.first as? String_ else {
+            return ERROR(message: "argument to `len` not supported, got \(arguments[0].type)")
+        }
+        return Integer(value: Integer.Value(arg.value.count))
+    }
+]
+
 public func eval(_ node: Node?, env: inout Environment) -> Object? {
     switch node {
     case let node as Program:
@@ -259,10 +271,13 @@ private func evalIfExpression(_ ie: IfExpression, env: inout Environment) -> Obj
 }
 
 private func evalIdentifier(_ node: Identifier, env: inout Environment) -> Object? {
-    guard let val = env[node.value] else {
-        return ERROR(message: "identifier not found: \(node.value)")
+    if let val = env[node.value] {
+        return val
     }
-    return val
+    if let builtin = builtins[node.value] {
+        return builtin
+    }
+    return ERROR(message: "identifier not found: \(node.value)")
 }
 
 private func evalExpressions(_ expressions: [Expression], env: inout Environment) -> [Object?] {
@@ -278,12 +293,18 @@ private func evalExpressions(_ expressions: [Expression], env: inout Environment
 }
 
 private func applyFunction(_ fn: Object?, arguments args: [Object?]) -> Object? {
-    guard let function = fn as? Function else {
+    switch fn {
+    case let fn as Function:
+        var env = extendFunctionEnvironment(fn, arguments: args)
+        let evaluated = eval(fn.body, env: &env)
+        return unwrapReturnValue(evaluated)
+
+    case let builtin as Builtin:
+        return builtin.fn(args)
+        
+    default:
         return ERROR(message: "not a function: \((fn ?? Const.NULL).type)")
     }
-    var env = extendFunctionEnvironment(function, arguments: args)
-    let evaluated = eval(function.body, env: &env)
-    return unwrapReturnValue(evaluated)
 }
 
 private func extendFunctionEnvironment(_ fn: Function, arguments args: [Object?]) -> Environment {
