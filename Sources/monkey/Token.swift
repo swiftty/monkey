@@ -69,6 +69,9 @@ extension TokenType {
     public static let LBRACE = TokenType(rawValue: "{")
     public static let RBRACE = TokenType(rawValue: "}")
 
+    public static let LBRACKET = TokenType(rawValue: "[")
+    public static let RBRACKET = TokenType(rawValue: "]")
+
     public static let FUNCTION = TokenType(rawValue: "FUNCTION")
     public static let LET = TokenType(rawValue: "LET")
     public static let TRUE = TokenType(rawValue: "TRUE")

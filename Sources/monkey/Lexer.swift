@@ -65,6 +65,12 @@ public struct Lexer {
         case "}":
             token = Token(type: .RBRACE, literal: ch)
 
+        case "[":
+            token = Token(type: .LBRACKET, literal: ch)
+
+        case "]":
+            token = Token(type: .RBRACKET, literal: ch)
+
         case nil:
             token = Token(type: .EOF, literal: "")
 
