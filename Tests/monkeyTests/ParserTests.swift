@@ -111,6 +111,27 @@ final class ParserTests: XCTestCase {
         try checkInfixExpression(bodyStmt.expression, "x", "+", "y")
     }
 
+    func testIndexExpression() throws {
+        let input = "myArray[1 + 1]"
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+
+        let indexExp = try XCTUnwrap(stmt.expression as? IndexExpression)
+        try checkLiteralExpresseion(indexExp.left, expected: "myArray")
+        try checkInfixExpression(indexExp.index, 1, "+", 1)
+    }
+
     func testFunctionParameter() throws {
         let tests: [(input: String, expectedParams: [String])] = [
             ("fn() {};", []),
@@ -231,7 +252,9 @@ final class ParserTests: XCTestCase {
             ("!(true == true)", "(!(true == true))"),
             ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
             ("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))", "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"),
-            ("add(a + b + c * d / f)", "add(((a + b) + ((c * d) / f)))")
+            ("add(a + b + c * d / f)", "add(((a + b) + ((c * d) / f)))"),
+            ("a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)"),
+            ("add(a * b[2], b[1], 2 * [1, 2][1])", "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))")
         ]
 
         for t in tests {

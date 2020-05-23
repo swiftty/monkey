@@ -64,6 +64,21 @@ public struct StringLiteral: Expression {
     public func tokenLiteral() -> String { token.literal }
 }
 
+public struct ArrayLiteral: Expression {
+    public var token: Token
+    public var elements: [Expression]
+
+    public var description: String {
+        var buffer = ""
+        buffer += "["
+        buffer += elements.map(\.description).joined(separator: ", ")
+        buffer += "]"
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
 public struct FunctionLiteral: Expression {
     public var token: Token
     public var parameters: [Identifier]
@@ -149,6 +164,24 @@ public struct CallExpression: Expression {
         buffer += "("
         buffer += arguments.map(\.description).joined(separator: ", ")
         buffer += ")"
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
+public struct IndexExpression: Expression {
+    public var token: Token
+    public var left: Expression
+    public var index: Expression
+
+    public var description: String {
+        var buffer = ""
+        buffer += "("
+        buffer += left.description
+        buffer += "["
+        buffer += index.description
+        buffer += "])"
         return buffer
     }
 

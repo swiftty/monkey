@@ -6,6 +6,7 @@ private enum Precedence: Int, Comparable {
     case PRODUCT
     case PREFIX
     case CALL
+    case INDEX
 
     static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.rawValue < rhs.rawValue
@@ -21,7 +22,8 @@ private let precedences = [
     .MINUS: .SUM,
     .SLASH: .PRODUCT,
     .ASTERISK: .PRODUCT,
-    .LPAREN: .CALL
+    .LPAREN: .CALL,
+    .LBRACKET: .INDEX
 ]
 
 // MARK: - Parser -
@@ -54,6 +56,7 @@ public struct Parser {
         registerPrefix(parseGroupedExpression(), to: .LPAREN)
         registerPrefix(parseIfExpression(), to: .IF)
         registerPrefix(parseFunctionLiteral(), to: .FUNCTION)
+        registerPrefix(parseArrayLiteral(), to: .LBRACKET)
 
         registerInfix(parseInfixExpression(), to: .PLUS)
         registerInfix(parseInfixExpression(), to: .MINUS)
@@ -64,6 +67,7 @@ public struct Parser {
         registerInfix(parseInfixExpression(), to: .LT)
         registerInfix(parseInfixExpression(), to: .GT)
         registerInfix(parseCallExpression(), to: .LPAREN)
+        registerInfix(parseIndexExpression(), to: .LBRACKET)
     }
 
     public mutating func nextToken() {
@@ -115,6 +119,14 @@ public struct Parser {
     private func parseStringLiteral() -> PrefixParser {
         return {
             StringLiteral(token: $0.currToken, value: $0.currToken.literal)
+        }
+    }
+
+    private func parseArrayLiteral() -> PrefixParser {
+        return {
+            let token = $0.currToken
+            guard let elements = $0.parseExpressionList(.RBRACKET) else { return nil }
+            return ArrayLiteral(token: token, elements: elements)
         }
     }
 
@@ -189,40 +201,19 @@ public struct Parser {
         return { p, left in
             let token = p.currToken
             guard let function = left else { return nil }
-            guard let arguments = p.parseCallArguments() else { return nil }
+            guard let arguments = p.parseExpressionList(.RPAREN) else { return nil }
             return CallExpression(token: token, function: function, arguments: arguments)
         }
     }
 
-    private mutating func parseCallArguments() -> [Expression]? {
-        var args: [Expression] = []
-
-        if peekToken(is: .RPAREN) {
-            nextToken()
-            return args
-        }
-
-        struct NilError: Error {}
-
-        func appendArgument() throws {
-            guard let arg = parseExpression(.LOWEST) else { throw NilError() }
-            args.append(arg)
-        }
-
-        do {
-            nextToken()
-            try appendArgument()
-            while peekToken(is: .COMMA) {
-                nextToken()
-                nextToken()
-                try appendArgument()
-            }
-            if !expectPeek(.RPAREN) {
-                return nil
-            }
-            return args
-        } catch {
-            return nil
+    private func parseIndexExpression() -> InfixParser {
+        return { p, left in
+            guard let left = left else { return nil }
+            let token = p.currToken
+            p.nextToken()
+            guard let index = p.parseExpression(.LOWEST) else { return nil }
+            guard p.expectPeek(.RBRACKET) else { return nil }
+            return IndexExpression(token: token, left: left, index: index)
         }
     }
 }
@@ -288,6 +279,38 @@ extension Parser {
             left = infix(&self, left)
         }
         return left
+    }
+
+    private mutating func parseExpressionList(_ end: TokenType) -> [Expression]? {
+        var list: [Expression] = []
+
+        if peekToken(is: end) {
+            nextToken()
+            return list
+        }
+
+        struct NilError: Error {}
+
+        func append() throws {
+            guard let exp = parseExpression(.LOWEST) else { throw NilError() }
+            list.append(exp)
+        }
+
+        do {
+            nextToken()
+            try append()
+            while peekToken(is: .COMMA) {
+                nextToken()
+                nextToken()
+                try append()
+            }
+            if !expectPeek(end) {
+                return nil
+            }
+            return list
+        } catch {
+            return nil
+        }
     }
 }
 
