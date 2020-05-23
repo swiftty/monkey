@@ -43,6 +43,13 @@ public func eval(_ node: Node?, env: inout Environment) -> Object? {
     case let node as StringLiteral:
         return String_(value: node.value)
 
+    case let node as ArrayLiteral:
+        let elements = evalExpressions(node.elements, env: &env)
+        if elements.count == 1 && isError(elements[0]) {
+            return elements[0]
+        }
+        return Array_(elements: elements.map { $0 ?? Const.NULL })
+
     case let node as PrefixExpression:
         let right = eval(node.right, env: &env)
         if isError(right) {
@@ -60,6 +67,16 @@ public func eval(_ node: Node?, env: inout Environment) -> Object? {
             return right
         }
         return evalInfixExpression(node.operator, left, right)
+
+    case let node as IndexExpression:
+        let left = eval(node.left, env: &env)
+        if isError(left) { return left }
+
+        let index = eval(node.index, env: &env)
+        if isError(index) { return index }
+
+        return evalIndexExpression(left, index)
+
 
     case let node as BlockStatement:
         return evalBlockStatement(node, env: &env)
@@ -254,6 +271,23 @@ private func evalStringInfixExpression(_ operator: String, _ left: String_, _ ri
     default:
         return ERROR(message: "unknown operator: \(left.type) \(`operator`) \(right.type)")
     }
+}
+
+private func evalIndexExpression(_ left: Object?, _ index: Object?) -> Object {
+    switch (left, index) {
+    case (let left as Array_, let index as Integer):
+        return evalArrayIndexExpression(left, index)
+    default:
+        return ERROR(message: "index operator not supported: \(left?.type ?? Const.NULL.type)")
+    }
+}
+
+private func evalArrayIndexExpression(_ array: Array_, _ index: Integer) -> Object {
+    let idx = Int(index.value)
+    guard array.elements.indices.contains(idx) else {
+        return Const.NULL
+    }
+    return array.elements[idx]
 }
 
 private func evalIfExpression(_ ie: IfExpression, env: inout Environment) -> Object? {

@@ -45,6 +45,15 @@ final class EvaluatorTests: XCTestCase {
             .init("3 * 3 * 3 + 10", 37 as Int64),
             .init("3 * (3 * 3) + 10", 37 as Int64),
             .init("(5 + 10 * 2 + 15 / 3) * 2 + -10", 50 as Int64),
+            .init("[1, 2, 3][0]", 1 as Int64),
+            .init("[1, 2, 3][1]", 2 as Int64),
+            .init("[1, 2, 3][2]", 3 as Int64),
+            .init("let i = 0; [1][i];", 1 as Int64),
+            .init("[1, 2, 3][1 + 1]", 3 as Int64),
+            .init("let myArray = [1, 2, 3]; myArray[2];", 3 as Int64),
+            .init("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6 as Int64),
+            .init("[1, 2, 3][3]", nil),
+            .init("[1, 2, 3][-1]", nil)
         ]
 
         for t in tests {
