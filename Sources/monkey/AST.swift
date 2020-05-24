@@ -88,9 +88,10 @@ public struct FunctionLiteral: Expression {
         var buffer = ""
         buffer += tokenLiteral()
         buffer += "("
-        buffer += parameters.map(\.description).joined()
-        buffer += ") "
+        buffer += parameters.map(\.description).joined(separator: ", ")
+        buffer += ") { "
         buffer += body.description
+        buffer += " }"
         return buffer
     }
 
@@ -139,14 +140,15 @@ public struct IfExpression: Expression {
 
     public var description: String {
         var buffer = ""
-        buffer += "if"
+        buffer += "if "
         buffer += condition.description
-        buffer += " "
+        buffer += " { "
         buffer += consequence.description
         if let alt = alternative {
-            buffer += "else "
+            buffer += " } else { "
             buffer += alt.description
         }
+        buffer += " }"
         return buffer
     }
 

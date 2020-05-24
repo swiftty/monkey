@@ -1,4 +1,4 @@
-public struct Environment {
+public final class Environment {
     private let _outer: [Environment]
     private var dict: [String: Object] = [:]
 

@@ -53,11 +53,33 @@ final class EvaluatorTests: XCTestCase {
             .init("let myArray = [1, 2, 3]; myArray[2];", 3 as Int64),
             .init("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6 as Int64),
             .init("[1, 2, 3][3]", nil),
-            .init("[1, 2, 3][-1]", nil)
+            .init("[1, 2, 3][-1]", nil),
+            .init("""
+            let reduce = fn(arr, initial, f) {
+                let iter = fn(arr, result) {
+                    if (len(arr) == 0) {
+                        result;
+                    } else {
+                        iter(rest(arr), f(result, first(arr)));
+                    }
+                };
+                iter(arr, initial);
+            };
+            let sum = fn(arr) {
+                reduce(arr, 0, fn(initial, el) {
+                    initial + el;
+                });
+            };
+            sum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            """, 55 as Int64)
         ]
 
         for t in tests {
             let evaluated = _eval(t.input)
+            if let error = evaluated as? ERROR {
+                XCTFail(error.message, file: t.file, line: t.line)
+                continue
+            }
             switch t.expected {
             case let expected as Int64:
                 checkIntegerObject(evaluated, expected: expected, file: t.file, line: t.line)

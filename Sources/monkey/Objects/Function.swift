@@ -7,7 +7,7 @@ public final class Function: Object {
     public func inspect() -> String {
         var buffer = ""
         buffer += "fn("
-        buffer += parameters.map(\.description).joined()
+        buffer += parameters.map(\.description).joined(separator: ", ")
         buffer += ") {\n"
         buffer += body.description
         buffer += "\n}"

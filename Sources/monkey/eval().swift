@@ -16,13 +16,58 @@ private extension Boolean {
 
 private let builtins = [
     "len": Builtin { args in
-        guard case let arguments = args.compactMap({ $0 }), arguments.count == 1 else {
+        guard args.count == 1 else {
             return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
         }
-        guard let arg = arguments.first as? String_ else {
-            return ERROR(message: "argument to `len` not supported, got \(arguments[0].type)")
+        switch args.first {
+        case let arg as String_:
+            return Integer(value: Integer.Value(arg.value.count))
+
+        case let arg as Array_:
+            return Integer(value: Integer.Value(arg.elements.count))
+
+        default:
+            return ERROR(message: "argument to `len` not supported, got \((args[0] ?? Const.NULL).type)")
         }
-        return Integer(value: Integer.Value(arg.value.count))
+    },
+    "first": Builtin { args in
+        guard args.count == 1 else {
+            return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
+        }
+        guard let arg = args.first as? Array_ else {
+            return ERROR(message: "argument to `first` not supported, got \((args[0] ?? Const.NULL).type)")
+        }
+        return arg.elements.first ?? Const.NULL
+    },
+    "last": Builtin { args in
+        guard args.count == 1 else {
+            return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
+        }
+        guard let arg = args.first as? Array_ else {
+            return ERROR(message: "argument to `last` not supported, got \((args[0] ?? Const.NULL).type)")
+        }
+        return arg.elements.last ?? Const.NULL
+    },
+    "rest": Builtin { args in
+        guard args.count == 1 else {
+            return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
+        }
+        guard let arg = args.first as? Array_ else {
+            return ERROR(message: "argument to `rest` not supported, got \((args[0] ?? Const.NULL).type)")
+        }
+        guard !arg.elements.isEmpty else {
+            return Const.NULL
+        }
+        return Array_(elements: Array(arg.elements.dropFirst()))
+    },
+    "push": Builtin { args in
+        guard args.count == 2 else {
+            return ERROR(message: "wrong number of arguments. got=\(args.count), want=2")
+        }
+        guard let arg = args.first as? Array_ else {
+            return ERROR(message: "argument to `push` not supported, got \((args[0] ?? Const.NULL).type)")
+        }
+        return Array_(elements: arg.elements + [args[1] ?? Const.NULL])
     }
 ]
 
@@ -76,7 +121,6 @@ public func eval(_ node: Node?, env: inout Environment) -> Object? {
         if isError(index) { return index }
 
         return evalIndexExpression(left, index)
-
 
     case let node as BlockStatement:
         return evalBlockStatement(node, env: &env)
