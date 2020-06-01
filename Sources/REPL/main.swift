@@ -24,10 +24,7 @@ repeat {
         continue
     }
 
-    guard let evaluated = eval(program, env: &env) else {
-        continue
-    }
-
+    let evaluated = eval(program, env: &env)
     print(evaluated.inspect())
 
 } while true
