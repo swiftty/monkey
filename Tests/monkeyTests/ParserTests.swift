@@ -83,6 +83,92 @@ final class ParserTests: XCTestCase {
         try checkLiteralExpresseion(stmt.expression, expected: "hello world")
     }
 
+    func testEmptyHashLiteralExpression() throws {
+        let input = """
+        {}
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+        let hash = try XCTUnwrap(stmt.expression as? HashLiteral)
+        XCTAssertTrue(hash.pairs.isEmpty)
+    }
+
+    func testHashLiteralExpression() throws {
+        let input = """
+        {"one": 1, "two": 2, "three": 3}
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+        let hash = try XCTUnwrap(stmt.expression as? HashLiteral)
+
+        XCTAssertEqual(hash.pairs.count, 3)
+
+        for (obj, expected) in zip(hash.pairs, [("one", 1), ("two", 2), ("three", 3)]) {
+            try checkLiteralExpresseion(obj.key, expected: expected.0)
+            try checkLiteralExpresseion(obj.value, expected: expected.1)
+        }
+    }
+
+    func testHashLiteralExpressionWithExpression() throws {
+        let input = """
+        {"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}
+        """
+
+        var parser = Parser(lexer: .init(input))
+        let program = parser.parseProgram()
+        try checkParserErrors(parser: parser)
+
+        if case let count = program.statements.count, count != 1 {
+            XCTFail("program.statements does not contain 1 statements. got=\(count)")
+            return
+        }
+        guard let stmt = program.statements[0] as? ExpressionStatement else {
+            XCTFail("stmt not ExpressionStatement. got=\(type(of: program.statements[0]))")
+            return
+        }
+        let hash = try XCTUnwrap(stmt.expression as? HashLiteral)
+
+        XCTAssertEqual(hash.pairs.count, 3)
+
+        let expected = [
+            ("one", {
+                try self.checkInfixExpression($0, 0, "+", 1)
+            }),
+            ("two", {
+                try self.checkInfixExpression($0, 10, "-", 8)
+            }),
+            ("three", {
+                try self.checkInfixExpression($0, 15, "/", 5)
+            })
+        ]
+        for (obj, expected) in zip(hash.pairs, expected) {
+            try checkLiteralExpresseion(obj.key, expected: expected.0)
+            try expected.1(obj.value)
+        }
+    }
+
     func testFunctionLiteralExpression() throws {
         let input = """
         fn(x, y) { x + y; }

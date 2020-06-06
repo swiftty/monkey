@@ -26,6 +26,7 @@ final class LexerTests: XCTestCase {
         "foobar"
         "foo bar"
         [1, 2];
+        {"foo": "bar"}
         """
 
         let tests: [(expectedType: TokenType, expectedLiteral: String)] = [
@@ -110,6 +111,11 @@ final class LexerTests: XCTestCase {
             (.INT, "2"),
             (.RBRACKET, "]"),
             (.SEMICOLON, ";"),
+            (.LBRACE, "{"),
+            (.STRING, "foo"),
+            (.COLON, ":"),
+            (.STRING, "bar"),
+            (.RBRACE, "}"),
             (.EOF, "")
         ]
 

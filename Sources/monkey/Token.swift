@@ -62,6 +62,7 @@ extension TokenType {
     public static let GT = TokenType(rawValue: ">")
 
     public static let COMMA = TokenType(rawValue: ",")
+    public static let COLON = TokenType(rawValue: ":")
     public static let SEMICOLON = TokenType(rawValue: ";")
 
     public static let LPAREN = TokenType(rawValue: "(")

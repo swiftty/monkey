@@ -57,6 +57,7 @@ public struct Parser {
         registerPrefix(parseIfExpression(), to: .IF)
         registerPrefix(parseFunctionLiteral(), to: .FUNCTION)
         registerPrefix(parseArrayLiteral(), to: .LBRACKET)
+        registerPrefix(parseHashLiteral(), to: .LBRACE)
 
         registerInfix(parseInfixExpression(), to: .PLUS)
         registerInfix(parseInfixExpression(), to: .MINUS)
@@ -127,6 +128,43 @@ public struct Parser {
             let token = $0.currToken
             guard let elements = $0.parseExpressionList(.RBRACKET) else { return nil }
             return ArrayLiteral(token: token, elements: elements)
+        }
+    }
+
+    private func parseHashLiteral() -> PrefixParser {
+        return {
+            let token = $0.currToken
+            var pairs = HashLiteral.Pairs()
+
+            while !$0.peekToken(is: .RBRACE) {
+                $0.nextToken()
+
+                guard let key = $0.parseExpression(.LOWEST) else {
+                    return nil
+                }
+
+                if !$0.expectPeek(.COLON) {
+                    return nil
+                }
+
+                $0.nextToken()
+
+                guard let value = $0.parseExpression(.LOWEST) else {
+                    return nil
+                }
+
+                if !$0.peekToken(is: .RBRACE) && !$0.expectPeek(.COMMA) {
+                    return nil
+                }
+
+                pairs.append((key, value))
+            }
+
+            if !$0.expectPeek(.RBRACE) {
+                return nil
+            }
+
+            return HashLiteral(token: token, pairs: pairs)
         }
     }
 

@@ -79,6 +79,24 @@ public struct ArrayLiteral: Expression {
     public func tokenLiteral() -> String { token.literal }
 }
 
+public struct HashLiteral: Expression {
+    public typealias Pairs = [(key: Expression, value: Expression)]
+    public var token: Token
+    public var pairs: Pairs
+
+    public var description: String {
+        var buffer = ""
+        buffer += "{"
+        buffer += pairs
+            .map { "\($0.key.description): \($0.value.description)" }
+            .joined(separator: ", ")
+        buffer += "}"
+        return buffer
+    }
+
+    public func tokenLiteral() -> String { token.literal }
+}
+
 public struct FunctionLiteral: Expression {
     public var token: Token
     public var parameters: [Identifier]

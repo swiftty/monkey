@@ -50,6 +50,9 @@ public struct Lexer {
         case ",":
             token = Token(type: .COMMA, literal: ch)
 
+        case ":":
+            token = Token(type: .COLON, literal: ch)
+
         case ";":
             token = Token(type: .SEMICOLON, literal: ch)
 
