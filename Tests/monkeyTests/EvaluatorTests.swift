@@ -202,6 +202,37 @@ final class EvaluatorTests: XCTestCase {
         }
     }
 
+    func testHashLiterals() throws {
+        let input = """
+        let two = "two";
+        {
+            "one": 10 - 9,
+            two: 1 + 1,
+            "thr" + "ee": 6 / 2,
+            4: 4,
+            true: 5,
+            false: 6
+        }
+        """
+
+        let evaluated = _eval(input)
+        let hash = try XCTUnwrap(evaluated as? Hash)
+        let expected = [
+            String_(value: "one").hashKey(): 1 as Int64,
+            String_(value: "two").hashKey(): 2,
+            String_(value: "three").hashKey(): 3,
+            Integer(value: 4).hashKey(): 4,
+            Boolean(value: true).hashKey(): 5,
+            Boolean(value: false).hashKey(): 6
+        ]
+
+        XCTAssertEqual(hash.pairs.count, expected.count)
+        for expected in expected {
+            let pair = try XCTUnwrap(hash.pairs[expected.key])
+            checkIntegerObject(pair.value, expected: expected.value)
+        }
+    }
+
     func testBuiltinFunctions() {
         let tests: [ExpressionInput<Any>] = [
             .init(#"len("")"#, 0),

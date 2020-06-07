@@ -21,9 +21,14 @@ extension ObjectType {
     public static let ERROR = ObjectType(rawValue: "ERROR")
     public static let FUNCTION = ObjectType(rawValue: "FUNCTION")
     public static let ARRAY = ObjectType(rawValue: "ARRAY")
+    public static let HASH = ObjectType(rawValue: "HASH")
     public static let BUILTIN = ObjectType(rawValue: "BUILTIN")
 }
 
 func ~= (_ lhs: Object, _ rhs: Object?) -> Bool {
     lhs === rhs
+}
+
+public protocol Hashable_ {
+    func hashKey() -> AnyHashable
 }

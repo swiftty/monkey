@@ -95,6 +95,9 @@ public func eval(_ node: Node?, env: inout Environment) -> Object {
         }
         return Array_(elements: elements)
 
+    case let node as HashLiteral:
+        return evalHashLiteral(node, env: &env)
+
     case let node as PrefixExpression:
         let right = eval(node.right, env: &env)
         if isError(right) {
@@ -344,6 +347,28 @@ private func evalIfExpression(_ ie: IfExpression, env: inout Environment) -> Obj
     } else {
         return Const.NULL
     }
+}
+
+private func evalHashLiteral(_ node: HashLiteral, env: inout Environment) -> Object {
+    var pairs = Hash.Pairs()
+    for (key, value) in node.pairs {
+        let key = eval(key, env: &env)
+        if isError(key) {
+            return key
+        }
+
+        guard let h = key as? Hashable_ else {
+            return ERROR(message: "unusable as hash key: \(key.type)")
+        }
+
+        let value = eval(value, env: &env)
+        if isError(value) {
+            return value
+        }
+
+        pairs[h.hashKey()] = (key, value)
+    }
+    return Hash(pairs: pairs)
 }
 
 private func evalIdentifier(_ node: Identifier, env: inout Environment) -> Object {
