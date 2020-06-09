@@ -161,13 +161,15 @@ final class EvaluatorTests: XCTestCase {
                     return 1;
                 }
                 """, "unknown operator: BOOLEAN + BOOLEAN"),
-            .init("foobar", "identifier not found: foobar")
+            .init("foobar", "identifier not found: foobar"),
+            .init(#"{fn(x) { x }: "Monkey"}"#, "unusable as hash key: FUNCTION"),
+            .init(#"{"name": "Monkey"}[fn(x) { x }]"#, "unusable as hash key: FUNCTION")
         ]
 
         for t in tests {
             let raw = _eval(t.input)
             guard let evaluated = raw as? ERROR else {
-                XCTFail("no error object returned. got=\(raw?.type.rawValue ?? "<nil>")", file: t.file, line: t.line)
+                XCTFail("no error object returned. got=\(raw.type.rawValue)", file: t.file, line: t.line)
                 continue
             }
             XCTAssertEqual(evaluated.message, t.expected)
@@ -233,6 +235,27 @@ final class EvaluatorTests: XCTestCase {
         }
     }
 
+    func testHashIndexExpressions() throws {
+        let tests: [ExpressionInput<Int64?>] = [
+            .init(#"{"foo": 5}["foo"]"#, 5),
+            .init(#"{"foo": 5}["bar"]"#, nil),
+            .init(#"let key = "foo"; {"foo": 5}[key]"#, 5),
+            .init(#"{}["bar"]"#, nil),
+            .init(#"{5: 5}[5]"#, 5),
+            .init(#"{5: 5}[15 / 3]"#, 5),
+            .init(#"{true: 5}[true]"#, 5)
+        ]
+
+        for t in tests {
+            let result = _eval(t.input)
+            if let expected = t.expected {
+                checkIntegerObject(result, expected: expected, file: t.file, line: t.line)
+            } else {
+                XCTAssertTrue(result is Null, file: t.file, line: t.line)
+            }
+        }
+    }
+
     func testBuiltinFunctions() {
         let tests: [ExpressionInput<Any>] = [
             .init(#"len("")"#, 0),
@@ -259,7 +282,7 @@ final class EvaluatorTests: XCTestCase {
 }
 
 extension EvaluatorTests {
-    private func _eval(_ input: String) -> Object? {
+    private func _eval(_ input: String) -> Object {
         var parser = Parser(lexer: .init(input))
         let program = parser.parseProgram()
         var env = Environment()

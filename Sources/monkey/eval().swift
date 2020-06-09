@@ -322,6 +322,8 @@ private func evalIndexExpression(_ left: Object, _ index: Object) -> Object {
     switch (left, index) {
     case (let left as Array_, let index as Integer):
         return evalArrayIndexExpression(left, index)
+    case (let left as Hash, let index):
+        return evalHashIndexExpression(left, index)
     default:
         return ERROR(message: "index operator not supported: \(left.type)")
     }
@@ -333,6 +335,13 @@ private func evalArrayIndexExpression(_ array: Array_, _ index: Integer) -> Obje
         return Const.NULL
     }
     return array.elements[idx]
+}
+
+private func evalHashIndexExpression(_ hash: Hash, _ index: Object) -> Object {
+    guard let key = index as? Hashable_ else {
+        return ERROR(message: "unusable as hash key: \(index.type)")
+    }
+    return hash.pairs[key.hashKey()]?.value ?? Const.NULL
 }
 
 private func evalIfExpression(_ ie: IfExpression, env: inout Environment) -> Object {
