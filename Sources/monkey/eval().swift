@@ -15,6 +15,12 @@ private extension Boolean {
 }
 
 private let builtins = [
+    "puts": Builtin { args in
+        for arg in args {
+            print(arg.inspect())
+        }
+        return Const.NULL
+    },
     "len": Builtin { args in
         guard args.count == 1 else {
             return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
