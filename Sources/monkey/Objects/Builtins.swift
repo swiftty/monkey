@@ -1,5 +1,5 @@
 public final class Builtin: Object {
-    public typealias Function = ([Object?]) -> Object
+    public typealias Function = ([Object]) -> Object
 
     public var fn: Function
 

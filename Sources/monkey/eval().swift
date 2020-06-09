@@ -27,7 +27,7 @@ private let builtins = [
             return Integer(value: Integer.Value(arg.elements.count))
 
         default:
-            return ERROR(message: "argument to `len` not supported, got \((args[0] ?? Const.NULL).type)")
+            return ERROR(message: "argument to `len` not supported, got \(args[0].type)")
         }
     },
     "first": Builtin { args in
@@ -35,7 +35,7 @@ private let builtins = [
             return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
         }
         guard let arg = args.first as? Array_ else {
-            return ERROR(message: "argument to `first` not supported, got \((args[0] ?? Const.NULL).type)")
+            return ERROR(message: "argument to `first` not supported, got \(args[0].type)")
         }
         return arg.elements.first ?? Const.NULL
     },
@@ -44,7 +44,7 @@ private let builtins = [
             return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
         }
         guard let arg = args.first as? Array_ else {
-            return ERROR(message: "argument to `last` not supported, got \((args[0] ?? Const.NULL).type)")
+            return ERROR(message: "argument to `last` not supported, got \(args[0].type)")
         }
         return arg.elements.last ?? Const.NULL
     },
@@ -53,7 +53,7 @@ private let builtins = [
             return ERROR(message: "wrong number of arguments. got=\(args.count), want=1")
         }
         guard let arg = args.first as? Array_ else {
-            return ERROR(message: "argument to `rest` not supported, got \((args[0] ?? Const.NULL).type)")
+            return ERROR(message: "argument to `rest` not supported, got \(args[0].type)")
         }
         guard !arg.elements.isEmpty else {
             return Const.NULL
@@ -65,9 +65,9 @@ private let builtins = [
             return ERROR(message: "wrong number of arguments. got=\(args.count), want=2")
         }
         guard let arg = args.first as? Array_ else {
-            return ERROR(message: "argument to `push` not supported, got \((args[0] ?? Const.NULL).type)")
+            return ERROR(message: "argument to `push` not supported, got \(args[0].type)")
         }
-        return Array_(elements: arg.elements + [args[1] ?? Const.NULL])
+        return Array_(elements: arg.elements + [args[1]])
     }
 ]
 
