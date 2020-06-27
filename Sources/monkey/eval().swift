@@ -159,6 +159,9 @@ public func eval(_ node: Node?, env: inout Environment) -> Object {
         return Function(parameters: node.parameters, body: node.body, env: env)
 
     case let node as CallExpression:
+        if node.function.tokenLiteral() == "quote" {
+            return quote(node.arguments[0])
+        }
         let function = eval(node.function, env: &env)
         if isError(function) {
             return function
@@ -451,4 +454,8 @@ private func isTruthy(_ obj: Object) -> Bool {
 
 private func isError(_ obj: Object) -> Bool {
     obj is ERROR
+}
+
+private func quote(_ arg: Node) -> Object {
+    Quote(node: arg)
 }

@@ -23,6 +23,7 @@ extension ObjectType {
     public static let ARRAY = ObjectType(rawValue: "ARRAY")
     public static let HASH = ObjectType(rawValue: "HASH")
     public static let BUILTIN = ObjectType(rawValue: "BUILTIN")
+    public static let QUOTE = ObjectType(rawValue: "QUOTE")
 }
 
 func ~= (_ lhs: Object, _ rhs: Object?) -> Bool {

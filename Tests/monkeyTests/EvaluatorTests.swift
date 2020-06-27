@@ -279,6 +279,25 @@ final class EvaluatorTests: XCTestCase {
             }
         }
     }
+
+    func testQuote() {
+        let tests: [ExpressionInput<String>] = [
+            .init("quote(5)", "5"),
+            .init("quote(5 + 8)", "(5 + 8)"),
+            .init("quote(foobar)", "foobar"),
+            .init("quote(foobar + barfoo)", "(foobar + barfoo)")
+        ]
+
+        for t in tests {
+            let evaluated = _eval(t.input)
+            guard let quote = evaluated as? Quote else {
+                XCTFail("\(evaluated)", file: t.file, line: t.line)
+                continue
+            }
+
+            XCTAssertEqual(quote.node.description, t.expected, file: t.file, line: t.line)
+        }
+    }
 }
 
 extension EvaluatorTests {
