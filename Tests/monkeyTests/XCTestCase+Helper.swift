@@ -6,7 +6,7 @@ struct ExpressionInput<Expected> {
     let file: StaticString
     let line: UInt
 
-    init(_ input: String, _ expected: Expected, file: StaticString = #file, line: UInt = #line) {
+    init(_ input: String, _ expected: Expected, file: StaticString = #filePath, line: UInt = #line) {
         self.input = input
         self.expected = expected
         self.file = file

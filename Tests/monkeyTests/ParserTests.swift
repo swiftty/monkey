@@ -448,7 +448,7 @@ final class ParserTests: XCTestCase {
 
 extension ParserTests {
     private func checkParserErrors(parser: Parser,
-                                   file: StaticString = #file, line: UInt = #line) throws {
+                                   file: StaticString = #filePath, line: UInt = #line) throws {
         if parser.errors.isEmpty {
             return
         }
@@ -463,7 +463,7 @@ extension ParserTests {
     }
 
     private func checkLiteralExpresseion<T>(_ exp: Expression?, expected: T,
-                                            file: StaticString = #file, line: UInt = #line) throws {
+                                            file: StaticString = #filePath, line: UInt = #line) throws {
         func checkIdentifier(to value: String) throws {
             let identifier = try XCTUnwrap(exp as? Identifier, file: file, line: line)
 
@@ -513,7 +513,7 @@ extension ParserTests {
                                                    _ left: Left,
                                                    _ operator: String,
                                                    _ right: Right,
-                                                   file: StaticString = #file, line: UInt = #line) throws {
+                                                   file: StaticString = #filePath, line: UInt = #line) throws {
         let exp = try XCTUnwrap(exp as? InfixExpression, file: file, line: line)
 
         XCTAssertEqual(exp.operator, `operator`, file: file, line: line)
@@ -522,7 +522,7 @@ extension ParserTests {
     }
 
     private func checkLetStatement(_ stmt: Statement, expected name: String,
-                                   file: StaticString = #file, line: UInt = #line) throws {
+                                   file: StaticString = #filePath, line: UInt = #line) throws {
         XCTAssertEqual(stmt.tokenLiteral(), "let", file: file, line: line)
 
         let letStmt = try XCTUnwrap(stmt as? LetStatement, file: file, line: line)

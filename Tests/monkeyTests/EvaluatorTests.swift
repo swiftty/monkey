@@ -291,13 +291,13 @@ extension EvaluatorTests {
     }
 
     private func checkIntegerObject(_ obj: Object?, expected: Int64,
-                                    file: StaticString = #file, line: UInt = #line) {
+                                    file: StaticString = #filePath, line: UInt = #line) {
         let result = obj as? Integer
         XCTAssertEqual(result?.value, expected, file: file, line: line)
     }
 
     private func checkBooleanObject(_ obj: Object?, expected: Bool,
-                                    file: StaticString = #file, line: UInt = #line) {
+                                    file: StaticString = #filePath, line: UInt = #line) {
         let result = obj as? Boolean
         XCTAssertEqual(result?.value, expected, file: file, line: line)
     }
